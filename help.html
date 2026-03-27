@@ -47,7 +47,7 @@
             <ul class="help-list">
               <li><strong>首页</strong> - 展示所有课程及学习进度，可添加新课程</li>
               <li><strong>课程笔记</strong> - 按课程分类记录 Markdown 笔记，支持文件上传</li>
-              <li><strong>课程作业</strong> - 查看各课程的作业及完成状态</li>
+              <li><strong>课程作业</strong> - 查看和添加各课程的作业，记录完成状态</li>
               <li><strong>日程</strong> - 管理待办事项和课程表</li>
               <li><strong>帮助</strong> - 本页面，提供使用指南</li>
             </ul>
@@ -88,6 +88,14 @@
               <div class="shortcut-item">
                 <span class="shortcut-key">编辑课程表</span>
                 <span class="shortcut-desc">直接在课程表单元格中输入内容，自动保存</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">添加作业</span>
+                <span class="shortcut-desc">在作业页面点击"➕ 添加作业"按钮</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">完成作业</span>
+                <span class="shortcut-desc">点击作业卡片上的复选框，作业和待办同步完成</span>
               </div>
             </div>
           </div>
@@ -147,12 +155,12 @@
               <p>A: 笔记存储在浏览器的 localStorage 中，每个课程的笔记独立保存。清除浏览器数据会丢失笔记。</p>
             </div>
             <div class="faq-item">
-              <h4>Q: 如何查看作业的代码？</h4>
-              <p>A: 点击作业卡片上的"查看代码"按钮，会跳转到 GitHub 仓库页面。</p>
+              <h4>Q: 如何添加新的作业？</h4>
+              <p>A: 在作业页面点击"➕ 添加作业"按钮，填写作业标题、选择课程、设置截止日期即可。</p>
             </div>
             <div class="faq-item">
-              <h4>Q: 为什么作业显示"待开始"？</h4>
-              <p>A: 这表示该作业尚未开始，通常是因为对应的课程模块还未学习到。</p>
+              <h4>Q: 作业和待办有什么关系？</h4>
+              <p>A: 当你添加带截止日期的作业时，系统会自动在待办事项中创建一个关联任务。完成其中一个，另一个也会同步完成。</p>
             </div>
             <div class="faq-item">
               <h4>Q: 如何添加新的课程？</h4>
