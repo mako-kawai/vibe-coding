@@ -101,14 +101,18 @@ function initNotes() {
 
   if (!textarea) return;
 
-  // 填充课程选择下拉框（如果尚未填充）
-  if (courseSelect && courseSelect.options.length <= 1) {
+  // 填充课程选择下拉框（去重）
+  if (courseSelect) {
+    // 检查是否已存在该课程选项
+    const existingValues = Array.from(courseSelect.options).map(o => o.value);
     const courses = typeof getCoursesArray !== 'undefined' ? getCoursesArray() : [];
     courses.forEach(c => {
-      const option = document.createElement('option');
-      option.value = c.id;
-      option.textContent = c.icon + ' ' + c.name;
-      courseSelect.appendChild(option);
+      if (!existingValues.includes(c.id)) {
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.icon + ' ' + c.name;
+        courseSelect.appendChild(option);
+      }
     });
   }
 

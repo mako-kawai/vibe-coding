@@ -37,8 +37,7 @@
         <!-- 添加待办表单 -->
         <div class="todo-add-form fade-in">
           <input type="text" id="todoInput" class="todo-input" placeholder="添加新的待办事项...">
-          <label for="todoDueDate" class="visually-hidden">截止日期</label>
-          <input type="date" id="todoDueDate" class="todo-date-input" title="请选择截止日期" placeholder="截止日期">
+          <input type="date" id="todoDueDate" class="todo-date-input">
           <select id="todoCourse" class="todo-course-select">
             <option value="">无关联课程</option>
           </select>
@@ -55,7 +54,6 @@
 
         <!-- 待办列表 -->
         <div class="todo-list" id="todoList">
-          <!-- 待办事项将由 JavaScript 动态渲染 -->
         </div>
       </div>
     </section>
@@ -65,6 +63,25 @@
       <div class="container">
         <h2 class="section-title fade-in">📅 课程表</h2>
 
+        <!-- 周选择器 -->
+        <div class="week-selector fade-in">
+          <button type="button" id="prevWeekBtn" class="week-nav-btn">◀ 上一周</button>
+          <select id="weekSelect" class="week-select">
+            <!-- 周选项将由 JavaScript 渲染 -->
+          </select>
+          <span id="weekDateRange" class="week-date-range"></span>
+          <button type="button" id="nextWeekBtn" class="week-nav-btn">下一周 ▶</button>
+          <button type="button" id="todayWeekBtn" class="course-btn-secondary">本周</button>
+        </div>
+
+        <!-- 单双周选择 -->
+        <div class="week-type-selector fade-in">
+          <label><input type="radio" name="weekType" value="all" checked> 全部</label>
+          <label><input type="radio" name="weekType" value="odd"> 单周</label>
+          <label><input type="radio" name="weekType" value="even"> 双周</label>
+        </div>
+
+        <!-- 课程表 -->
         <div class="table-wrapper fade-in">
           <table class="course-table" id="courseTable">
             <thead>
@@ -80,13 +97,78 @@
               </tr>
             </thead>
             <tbody id="courseTableBody">
-              <!-- 课程表将由 JavaScript 动态渲染 -->
             </tbody>
           </table>
+        </div>
+
+        <!-- 添加课程项按钮 -->
+        <div class="table-add-section fade-in">
+          <button type="button" id="addTableItemBtn" class="course-btn">➕ 添加课程项</button>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- 添加课程项模态框 -->
+  <div id="addTableItemModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>添加课程</h3>
+        <button type="button" class="modal-close" onclick="closeTableItemModal()">&times;</button>
+      </div>
+      <form id="addTableItemForm" class="modal-form">
+        <div class="form-group">
+          <label for="tableItemCourse">选择课程 *</label>
+          <select id="tableItemCourse" required>
+            <option value="">请选择课程</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tableItemDay">星期 *</label>
+          <select id="tableItemDay" required>
+            <option value="0">周一</option>
+            <option value="1">周二</option>
+            <option value="2">周三</option>
+            <option value="3">周四</option>
+            <option value="4">周五</option>
+            <option value="5">周六</option>
+            <option value="6">周日</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tableItemPeriod">节次 *</label>
+          <select id="tableItemPeriod" required>
+            <option value="0">1-2 节 (08:00-09:40)</option>
+            <option value="1">3-4 节 (10:00-11:40)</option>
+            <option value="2">5-6 节 (14:00-15:40)</option>
+            <option value="3">7-8 节 (16:00-17:40)</option>
+            <option value="4">9-10 节 (18:30-20:00)</option>
+            <option value="5">11-12 节 (20:10-21:40)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tableItemWeekType">周次</label>
+          <select id="tableItemWeekType">
+            <option value="all">全部周</option>
+            <option value="odd">单周</option>
+            <option value="even">双周</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tableItemLocation">上课地点</label>
+          <input type="text" id="tableItemLocation" placeholder="例如：教学楼A101">
+        </div>
+        <div class="form-group">
+          <label for="tableItemNote">备注</label>
+          <input type="text" id="tableItemNote" placeholder="其他备注信息">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="course-btn-secondary" onclick="closeTableItemModal()">取消</button>
+          <button type="submit" class="course-btn">添加</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- 页脚 -->
   <footer class="footer">
@@ -103,17 +185,14 @@
     const TODOS_KEY = 'user_todos';
     let currentFilter = 'all';
 
-    // 加载待办事项
     function loadTodos() {
       return JSON.parse(localStorage.getItem(TODOS_KEY) || '[]');
     }
 
-    // 保存待办事项
     function saveTodos(todos) {
       localStorage.setItem(TODOS_KEY, JSON.stringify(todos));
     }
 
-    // 添加待办
     function addTodo(text, dueDate, courseId) {
       const todos = loadTodos();
       const todo = {
@@ -129,15 +208,12 @@
       return todo;
     }
 
-    // 切换完成状态
     function toggleTodo(todoId) {
       const todos = loadTodos();
       const todo = todos.find(t => t.id === todoId);
       if (todo) {
         todo.completed = !todo.completed;
         saveTodos(todos);
-
-        // 如果是作业关联的待办，同步更新作业状态
         if (todo.homeworkId) {
           const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
           const hw = homework.find(h => h.id === todo.homeworkId);
@@ -149,14 +225,11 @@
       }
     }
 
-    // 删除待办
     function deleteTodo(todoId) {
       const todos = loadTodos();
       const todo = todos.find(t => t.id === todoId);
       const filtered = todos.filter(t => t.id !== todoId);
       saveTodos(filtered);
-
-      // 如果是作业关联的待办，也删除对应的作业
       if (todo && todo.homeworkId) {
         const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
         const filteredHw = homework.filter(h => h.id !== todo.homeworkId);
@@ -164,7 +237,6 @@
       }
     }
 
-    // 获取日期状态
     function getDueDateStatus(dueDate) {
       if (!dueDate) return 'none';
       const today = new Date();
@@ -173,18 +245,15 @@
       due.setHours(0, 0, 0, 0);
       const diff = due.getTime() - today.getTime();
       const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-
       if (days < 0) return 'overdue';
       if (days === 0) return 'today';
       if (days <= 3) return 'soon';
       return 'future';
     }
 
-    // 筛选待办
     function filterTodos(todos, filter) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       return todos.filter(todo => {
         if (filter === 'completed') return todo.completed;
         if (filter === 'today') {
@@ -200,11 +269,10 @@
           const diff = due.getTime() - today.getTime();
           return diff >= 0 && diff <= 3 * 24 * 60 * 60 * 1000;
         }
-        return true; // 'all'
+        return true;
       });
     }
 
-    // 渲染待办列表
     function renderTodos() {
       const todoList = document.getElementById('todoList');
       let todos = loadTodos();
@@ -212,8 +280,6 @@
       todos.sort((a, b) => {
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
         if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
-        if (a.dueDate) return -1;
-        if (b.dueDate) return 1;
         return 0;
       });
 
@@ -224,12 +290,8 @@
 
       todoList.innerHTML = todos.map(todo => {
         const status = getDueDateStatus(todo.dueDate);
-        const statusClass = status === 'overdue' ? 'overdue' :
-                           status === 'today' ? 'today' :
-                           status === 'soon' ? 'soon' : '';
-        const statusText = status === 'overdue' ? '已过期' :
-                          status === 'today' ? '今天到期' :
-                          status === 'soon' ? '即将到期' : '';
+        const statusClass = status === 'overdue' ? 'overdue' : status === 'today' ? 'today' : status === 'soon' ? 'soon' : '';
+        const statusText = status === 'overdue' ? '已过期' : status === 'today' ? '今天到期' : status === 'soon' ? '即将到期' : '';
         const course = getCourseById(todo.courseId);
 
         return `
@@ -251,15 +313,12 @@
       }).join('');
     }
 
-    // 处理添加待办
     function handleAddTodo() {
       const input = document.getElementById('todoInput');
       const dateInput = document.getElementById('todoDueDate');
       const courseSelect = document.getElementById('todoCourse');
-
       const text = input.value.trim();
       if (!text) return;
-
       addTodo(text, dateInput.value || null, courseSelect.value || null);
       input.value = '';
       dateInput.value = '';
@@ -267,13 +326,11 @@
       renderTodos();
     }
 
-    // 处理切换完成
     function handleToggleTodo(todoId) {
       toggleTodo(todoId);
       renderTodos();
     }
 
-    // 处理删除
     function handleDeleteTodo(todoId) {
       if (confirm('确定要删除这个待办吗？')) {
         deleteTodo(todoId);
@@ -281,7 +338,6 @@
       }
     }
 
-    // 初始化筛选按钮
     function initFilterButtons() {
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -293,87 +349,254 @@
       });
     }
 
-    // 填充课程选择下拉框
     function initTodoCourseSelect() {
       const select = document.getElementById('todoCourse');
       const courses = getCoursesArray();
-      const currentValue = select.value;
-
       select.innerHTML = '<option value="">无关联课程</option>' +
         courses.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
-
-      if (currentValue) select.value = currentValue;
     }
 
     // ===== 课程表功能 =====
-    const TABLE_DATA_KEY = 'course_table_data';
-    const PERIODS = ['1-2节', '3-4节', '5-6节', '7-8节', '9-10节'];
+    const TABLE_ITEMS_KEY = 'course_table_items';
+    const FIRST_WEEK_MONDAY = new Date('2026-03-02'); // 第一周周一
+
+    const PERIODS = [
+      { id: 0, name: '1-2节', time: '08:00-09:40' },
+      { id: 1, name: '3-4节', time: '10:00-11:40' },
+      { id: 2, name: '5-6节', time: '14:00-15:40' },
+      { id: 3, name: '7-8节', time: '16:00-17:40' },
+      { id: 4, name: '9-10节', time: '18:30-20:00' },
+      { id: 5, name: '11-12节', time: '20:10-21:40' }
+    ];
+
     const DAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-    // 加载课程表数据
-    function loadTableData() {
-      return JSON.parse(localStorage.getItem(TABLE_DATA_KEY) || '{}');
+    let currentWeekOffset = 0;
+    let currentWeekType = 'all';
+
+    function loadTableItems() {
+      return JSON.parse(localStorage.getItem(TABLE_ITEMS_KEY) || '[]');
     }
 
-    // 保存课程表数据
-    function saveTableData(data) {
-      localStorage.setItem(TABLE_DATA_KEY, JSON.stringify(data));
+    function saveTableItems(items) {
+      localStorage.setItem(TABLE_ITEMS_KEY, JSON.stringify(items));
     }
 
-    // 渲染课程表
+    function getWeekNumber(weekOffset) {
+      return weekOffset + 1;
+    }
+
+    function isCurrentWeekOdd(weekOffset) {
+      const weekNum = getWeekNumber(weekOffset);
+      return weekNum % 2 === 1;
+    }
+
+    function getWeekStartDate(weekOffset) {
+      const d = new Date(FIRST_WEEK_MONDAY);
+      d.setDate(d.getDate() + weekOffset * 7);
+      return d;
+    }
+
+    function getWeekEndDate(weekOffset) {
+      const d = getWeekStartDate(weekOffset);
+      d.setDate(d.getDate() + 6);
+      return d;
+    }
+
+    function formatDate(d) {
+      return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    function renderWeekSelect() {
+      const select = document.getElementById('weekSelect');
+      const options = [];
+      for (let i = -10; i <= 20; i++) {
+        const start = getWeekStartDate(i);
+        const end = getWeekEndDate(i);
+        const label = `第${getWeekNumber(i)}周 (${formatDate(start)}-${formatDate(end)})`;
+        options.push(`<option value="${i}">${label}</option>`);
+      }
+      select.innerHTML = options.join('');
+      select.value = currentWeekOffset;
+    }
+
+    function updateWeekDateRange() {
+      const start = getWeekStartDate(currentWeekOffset);
+      const end = getWeekEndDate(currentWeekOffset);
+      document.getElementById('weekDateRange').textContent = `${formatDate(start)} - ${formatDate(end)}`;
+    }
+
     function renderCourseTable() {
       const tbody = document.getElementById('courseTableBody');
-      const tableData = loadTableData();
+      const items = loadTableItems();
+      const weekNum = getWeekNumber(currentWeekOffset);
+      const isOddWeek = weekNum % 2 === 1;
 
       let html = '';
       PERIODS.forEach((period, pIndex) => {
         html += '<tr>';
-        html += `<td class="time-cell">${period}</td>`;
+        html += `<td class="time-cell">
+          <div class="period-name">${period.name}</div>
+          <div class="period-time">${period.time}</div>
+        </td>`;
+
         DAYS.forEach((day, dIndex) => {
-          const key = `${dIndex}_${pIndex}`;
-          const content = tableData[key] || '';
-          html += `<td class="course-cell">
-            <input type="text" class="table-input"
-              data-day="${dIndex}" data-period="${pIndex}"
-              value="${content}"
-              placeholder="..."
-              onchange="handleTableCellChange(${dIndex}, ${pIndex}, this.value)">
-          </td>`;
+          const cellItems = items.filter(item => {
+            if (item.day != dIndex || item.period != pIndex) return false;
+            if (item.weekType === 'all') return true;
+            if (item.weekType === 'odd') return isOddWeek;
+            if (item.weekType === 'even') return !isOddWeek;
+            return true;
+          });
+
+          if (cellItems.length === 0) {
+            html += `<td class="course-cell empty-cell" data-day="${dIndex}" data-period="${pIndex}" onclick="openTableItemModal(${dIndex}, ${pIndex})">+</td>`;
+          } else {
+            html += `<td class="course-cell" data-day="${dIndex}" data-period="${pIndex}">`;
+            cellItems.forEach(item => {
+              const course = getCourseById(item.courseId);
+              const courseName = course ? course.name : item.courseName || '未知课程';
+              const courseIcon = course ? course.icon : '📚';
+              const weekTypeLabel = item.weekType === 'odd' ? '(单)' : item.weekType === 'even' ? '(双)' : '';
+              const isActive = item.weekType === 'all' || (item.weekType === 'odd' === isOddWeek);
+              const opacity = isActive ? '' : 'class="dimmed"';
+
+              html += `
+                <div class="table-course-item ${isActive ? '' : 'dimmed'}" onclick="event.stopPropagation()">
+                  <span class="table-course-icon">${courseIcon}</span>
+                  <span class="table-course-name">${courseName} ${weekTypeLabel}</span>
+                  ${item.location ? `<span class="table-course-location">📍${item.location}</span>` : ''}
+                  ${item.note ? `<span class="table-course-note">${item.note}</span>` : ''}
+                  <button class="table-course-delete" onclick="deleteTableItem('${item.id}')">×</button>
+                </div>
+              `;
+            });
+            html += '</td>';
+          }
         });
         html += '</tr>';
       });
       tbody.innerHTML = html;
     }
 
-    // 处理课程表单元格更改
-    function handleTableCellChange(day, period, content) {
-      const tableData = loadTableData();
-      const key = `${day}_${period}`;
-      if (content.trim()) {
-        tableData[key] = content.trim();
-      } else {
-        delete tableData[key];
+    function openTableItemModal(day = null, period = null) {
+      const courseSelect = document.getElementById('tableItemCourse');
+      const courses = getCoursesArray();
+      courseSelect.innerHTML = '<option value="">请选择课程</option>' +
+        courses.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+
+      if (day !== null) document.getElementById('tableItemDay').value = day;
+      if (period !== null) document.getElementById('tableItemPeriod').value = period;
+
+      document.getElementById('addTableItemModal').style.display = 'flex';
+    }
+
+    function closeTableItemModal() {
+      document.getElementById('addTableItemModal').style.display = 'none';
+    }
+
+    function handleAddTableItem(e) {
+      e.preventDefault();
+      const courseId = document.getElementById('tableItemCourse').value;
+      const day = parseInt(document.getElementById('tableItemDay').value);
+      const period = parseInt(document.getElementById('tableItemPeriod').value);
+      const weekType = document.getElementById('tableItemWeekType').value;
+      const location = document.getElementById('tableItemLocation').value.trim();
+      const note = document.getElementById('tableItemNote').value.trim();
+
+      if (!courseId) {
+        alert('请选择课程');
+        return;
       }
-      saveTableData(tableData);
+
+      const items = loadTableItems();
+      const course = getCourseById(courseId);
+      items.push({
+        id: 'ti_' + Date.now(),
+        courseId,
+        courseName: course ? course.name : '',
+        day,
+        period,
+        weekType,
+        location,
+        note,
+        createdAt: new Date().toISOString()
+      });
+      saveTableItems(items);
+      closeTableItemModal();
+      renderCourseTable();
+
+      document.getElementById('addTableItemForm').reset();
+    }
+
+    function deleteTableItem(itemId) {
+      if (!confirm('确定要删除这个课程项吗？')) return;
+      const items = loadTableItems();
+      const filtered = items.filter(item => item.id !== itemId);
+      saveTableItems(filtered);
+      renderCourseTable();
     }
 
     // 初始化
     document.addEventListener('DOMContentLoaded', function() {
-      // 初始化待办
+      // 待办事项初始化
       initTodoCourseSelect();
       initFilterButtons();
       renderTodos();
-
-      // 添加按钮事件
       document.getElementById('addTodoBtn').addEventListener('click', handleAddTodo);
-
-      // 回车添加待办
       document.getElementById('todoInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') handleAddTodo();
       });
 
-      // 初始化课程表
+      // 课程表初始化
+      renderWeekSelect();
+      updateWeekDateRange();
       renderCourseTable();
+
+      // 周导航
+      document.getElementById('prevWeekBtn').addEventListener('click', function() {
+        currentWeekOffset--;
+        renderWeekSelect();
+        updateWeekDateRange();
+        renderCourseTable();
+      });
+
+      document.getElementById('nextWeekBtn').addEventListener('click', function() {
+        currentWeekOffset++;
+        renderWeekSelect();
+        updateWeekDateRange();
+        renderCourseTable();
+      });
+
+      document.getElementById('todayWeekBtn').addEventListener('click', function() {
+        currentWeekOffset = 0;
+        renderWeekSelect();
+        updateWeekDateRange();
+        renderCourseTable();
+      });
+
+      document.getElementById('weekSelect').addEventListener('change', function() {
+        currentWeekOffset = parseInt(this.value);
+        updateWeekDateRange();
+        renderCourseTable();
+      });
+
+      document.querySelectorAll('input[name="weekType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          currentWeekType = this.value;
+          renderCourseTable();
+        });
+      });
+
+      // 添加课程项
+      document.getElementById('addTableItemBtn').addEventListener('click', function() {
+        openTableItemModal();
+      });
+
+      document.getElementById('addTableItemForm').addEventListener('submit', handleAddTableItem);
+      document.getElementById('addTableItemModal').addEventListener('click', function(e) {
+        if (e.target === this) closeTableItemModal();
+      });
     });
   </script>
 </body>

@@ -63,7 +63,7 @@ const DEFAULT_COURSES = {
 const USER_COURSES_KEY = 'user_courses';
 
 /**
- * 获取所有课程（默认 + 用户添加）
+ * 获取所有课程（默认 + 用户添加 + 编辑过的默认课程）
  */
 function getAllCourses() {
   const userCourses = JSON.parse(localStorage.getItem(USER_COURSES_KEY) || '[]');
@@ -71,7 +71,17 @@ function getAllCourses() {
   userCourses.forEach(course => {
     userCourseMap[course.id] = course;
   });
-  return { ...DEFAULT_COURSES, ...userCourseMap };
+
+  // 合并编辑过的默认课程
+  const editedDefaults = getEditedDefaultCourses();
+  const allDefaults = { ...DEFAULT_COURSES };
+  Object.keys(editedDefaults).forEach(id => {
+    if (allDefaults[id]) {
+      allDefaults[id] = { ...allDefaults[id], ...editedDefaults[id] };
+    }
+  });
+
+  return { ...allDefaults, ...userCourseMap };
 }
 
 /**
@@ -168,6 +178,7 @@ function renderCourseCards(containerId) {
 
     return `
       <div class="course-card-main fade-in" data-course-id="${course.id}">
+        <button type="button" class="course-edit-btn" onclick="openEditCourseModal('${course.id}')">✏️</button>
         <div class="course-card-header">
           <span class="course-icon">${course.icon}</span>
           <div class="course-info">
@@ -204,6 +215,72 @@ function handleDeleteCourse(courseId) {
     deleteUserCourse(courseId);
     renderCourseCards('coursesGrid');
   }
+}
+
+/**
+ * 打开编辑课程模态框
+ */
+function openEditCourseModal(courseId) {
+  const course = getCourseById(courseId);
+  if (!course) return;
+
+  document.getElementById('editCourseId').value = courseId;
+  document.getElementById('editCourseName').value = course.name;
+  document.getElementById('editCourseIcon').value = course.icon;
+  document.getElementById('editCourseCredit').value = course.credit;
+  document.getElementById('editCourseCategory').value = course.category || '';
+  document.getElementById('editCourseStatus').value = course.status;
+  document.getElementById('editCourseDesc').value = course.description || '';
+  document.getElementById('editCourseModal').style.display = 'flex';
+}
+
+/**
+ * 处理编辑课程提交
+ */
+function handleEditCourse(e) {
+  e.preventDefault();
+  const courseId = document.getElementById('editCourseId').value;
+  const updates = {
+    name: document.getElementById('editCourseName').value,
+    icon: document.getElementById('editCourseIcon').value || '📚',
+    credit: parseInt(document.getElementById('editCourseCredit').value) || 3,
+    category: document.getElementById('editCourseCategory').value || '自定义',
+    status: document.getElementById('editCourseStatus').value,
+    description: document.getElementById('editCourseDesc').value
+  };
+
+  // 检查是默认课程还是用户添加的课程
+  const course = getCourseById(courseId);
+  if (course && course.isUserAdded) {
+    updateUserCourse(courseId, updates);
+  } else {
+    // 更新默认课程需要通过特殊方式
+    updateDefaultCourse(courseId, updates);
+  }
+
+  renderCourseCards('coursesGrid');
+  closeEditCourseModal();
+}
+
+function closeEditCourseModal() {
+  document.getElementById('editCourseModal').style.display = 'none';
+}
+
+/**
+ * 更新默认课程（存储在 localStorage 的副本）
+ */
+function updateDefaultCourse(courseId, updates) {
+  const DEFAULT_COURSES_EDITED_KEY = 'default_courses_edited';
+  const edited = JSON.parse(localStorage.getItem(DEFAULT_COURSES_EDITED_KEY) || '{}');
+  edited[courseId] = { ...updates, edited: true };
+  localStorage.setItem(DEFAULT_COURSES_EDITED_KEY, JSON.stringify(edited));
+}
+
+/**
+ * 获取编辑后的默认课程
+ */
+function getEditedDefaultCourses() {
+  return JSON.parse(localStorage.getItem('default_courses_edited') || '{}');
 }
 
 // 导出供外部使用

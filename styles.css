@@ -335,6 +335,26 @@ ul {
   align-items: center;
   max-width: 800px;
   margin: 0 auto;
+  position: relative;
+}
+
+.edit-profile-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--sakura-pink);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.edit-profile-btn:hover {
+  opacity: 1;
 }
 
 .avatar-wrapper {
@@ -416,6 +436,33 @@ ul {
   transform: translateY(-5px);
   box-shadow: var(--shadow-hover);
   border-color: var(--sakura-pink);
+}
+
+.course-edit-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-card-main:hover .course-edit-btn {
+  opacity: 1;
+}
+
+.course-edit-btn:hover {
+  background: var(--sakura-pink);
+  color: white;
 }
 
 .course-card-header {
@@ -1701,6 +1748,24 @@ ul {
   margin-top: 20px;
 }
 
+.avatar-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(255, 183, 197, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  overflow: hidden;
+}
+
 /* ===== 页脚 ===== */
 .footer {
   background: var(--bg-card);
@@ -2048,6 +2113,177 @@ ul {
 .table-input::placeholder {
   color: var(--text-light);
   opacity: 0.5;
+}
+
+/* ===== 日程页面样式 ===== */
+.schedule-section {
+  padding: 40px 0;
+}
+
+.table-section {
+  padding: 40px 0;
+}
+
+/* 每周导航 */
+.week-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 15px 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.week-nav-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--sakura-pink);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--sakura-pink);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.week-nav-btn:hover {
+  background: var(--sakura-pink);
+  color: white;
+}
+
+.week-select {
+  padding: 8px 16px;
+  border: 1px solid var(--sakura-pink);
+  border-radius: 20px;
+  background: white;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.week-date-range {
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+/* 单双周选择 */
+.week-type-selector {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.week-type-selector label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+}
+
+.week-type-selector input[type="radio"] {
+  accent-color: var(--sakura-pink);
+}
+
+/* 课程表时间列 */
+.period-name {
+  font-weight: 500;
+  color: var(--mint-dark);
+  font-size: 0.9rem;
+}
+
+.period-time {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+/* 课程表课程项 */
+.table-course-item {
+  position: relative;
+  padding: 6px 8px;
+  background: linear-gradient(135deg, var(--sakura-pink), var(--sakura-dark));
+  border-radius: 8px;
+  color: white;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: default;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.table-course-item.dimmed {
+  opacity: 0.4;
+}
+
+.table-course-icon {
+  font-size: 0.85rem;
+}
+
+.table-course-name {
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.table-course-location,
+.table-course-note {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  line-height: 1.2;
+}
+
+.table-course-delete {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.table-course-item:hover .table-course-delete {
+  opacity: 1;
+}
+
+.table-course-delete:hover {
+  background: rgba(255, 100, 100, 0.7);
+}
+
+/* 空单元格 */
+.empty-cell {
+  cursor: pointer;
+  color: var(--text-light);
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+}
+
+.empty-cell:hover {
+  background: rgba(255, 183, 197, 0.2);
+  color: var(--sakura-pink);
+}
+
+/* 添加课程项区域 */
+.table-add-section {
+  margin-top: 20px;
+  text-align: center;
 }
 
 /* ===== 上传文件列表 ===== */

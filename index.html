@@ -33,18 +33,19 @@
     <section id="about" class="section about-section">
       <div class="container">
         <div class="about-card fade-in">
+          <button type="button" class="edit-profile-btn" onclick="openProfileModal()">✏️ 编辑</button>
           <div class="avatar-wrapper">
-            <div class="avatar">🌸</div>
+            <div class="avatar" id="profileAvatar">🌸</div>
           </div>
           <div class="about-info">
-            <h1 class="name">mako</h1>
-            <p class="nickname">柚子厨 · 枕批</p>
-            <p class="bio">
+            <h1 class="name" id="profileName">mako</h1>
+            <p class="nickname" id="profileNickname">柚子厨 · 枕批</p>
+            <p class="bio" id="profileBio">
               正在探索编程世界的学生。旮旯给木爱好者，
               希望创造有趣的作品。这是一个开始，希望在这里记录我的成长之路。
             </p>
             <div class="about-links">
-              <a href="https://github.com" target="_blank" rel="noopener" class="github-link">
+              <a href="https://github.com" target="_blank" rel="noopener" class="github-link" id="profileGithub">
                 <svg height="20" width="20" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
@@ -114,6 +115,95 @@
     </div>
   </div>
 
+  <!-- 编辑个人资料模态框 -->
+  <div id="editProfileModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>编辑个人资料</h3>
+        <button type="button" class="modal-close" onclick="closeProfileModal()">&times;</button>
+      </div>
+      <form id="editProfileForm" class="modal-form">
+        <div class="form-group">
+          <label>头像</label>
+          <div class="avatar-edit-container">
+            <div class="avatar-preview" id="avatarPreview">🌸</div>
+            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+            <button type="button" class="course-btn-secondary" onclick="document.getElementById('avatarInput').click()">上传图片</button>
+          </div>
+          <div id="cropContainer" style="display: none; margin-top: 10px;">
+            <canvas id="cropCanvas" style="max-width: 100%; border: 1px solid #ddd;"></canvas>
+            <p style="font-size: 0.85rem; color: #666;">拖动选择裁剪区域</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="profileNameInput">昵称 *</label>
+          <input type="text" id="profileNameInput" required placeholder="你的名字">
+        </div>
+        <div class="form-group">
+          <label for="profileNicknameInput">头衔</label>
+          <input type="text" id="profileNicknameInput" placeholder="例如：柚子厨 · 枕批">
+        </div>
+        <div class="form-group">
+          <label for="profileBioInput">个人简介</label>
+          <textarea id="profileBioInput" rows="3" placeholder="介绍一下你自己..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="profileGithubInput">GitHub 链接</label>
+          <input type="url" id="profileGithubInput" placeholder="https://github.com/你的用户名">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="course-btn-secondary" onclick="closeProfileModal()">取消</button>
+          <button type="submit" class="course-btn">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 编辑课程模态框 -->
+  <div id="editCourseModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>编辑课程</h3>
+        <button type="button" class="modal-close" onclick="closeEditCourseModal()">&times;</button>
+      </div>
+      <form id="editCourseForm" class="modal-form">
+        <input type="hidden" id="editCourseId">
+        <div class="form-group">
+          <label for="editCourseName">课程名称 *</label>
+          <input type="text" id="editCourseName" required>
+        </div>
+        <div class="form-group">
+          <label for="editCourseIcon">课程图标</label>
+          <input type="text" id="editCourseIcon" value="📚">
+        </div>
+        <div class="form-group">
+          <label for="editCourseCredit">学分</label>
+          <input type="number" id="editCourseCredit" min="1" max="10" value="3">
+        </div>
+        <div class="form-group">
+          <label for="editCourseCategory">分类</label>
+          <input type="text" id="editCourseCategory" placeholder="例如：计算机科学">
+        </div>
+        <div class="form-group">
+          <label for="editCourseStatus">状态</label>
+          <select id="editCourseStatus">
+            <option value="upcoming">未开始</option>
+            <option value="in-progress">学习中</option>
+            <option value="completed">已完成</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editCourseDesc">课程描述</label>
+          <textarea id="editCourseDesc" rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="course-btn-secondary" onclick="closeEditCourseModal()">取消</button>
+          <button type="submit" class="course-btn">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 页脚 -->
   <footer class="footer">
     <div class="container">
@@ -128,6 +218,7 @@
     // 初始化课程卡片
     document.addEventListener('DOMContentLoaded', function() {
       renderCourseCards('coursesGrid');
+      loadProfile();
 
       // 添加课程按钮点击事件
       document.getElementById('addCourseBtn').addEventListener('click', function() {
@@ -157,10 +248,149 @@
           closeAddCourseModal();
         }
       });
+
+      // 个人资料编辑
+      document.getElementById('editProfileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveProfile();
+        closeProfileModal();
+      });
+
+      document.getElementById('avatarInput').addEventListener('change', handleAvatarUpload);
+
+      document.getElementById('editProfileModal').addEventListener('click', function(e) {
+        if (e.target === this) closeProfileModal();
+      });
+
+      // 编辑课程表单
+      document.getElementById('editCourseForm').addEventListener('submit', handleEditCourse);
+      document.getElementById('editCourseModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditCourseModal();
+      });
     });
 
     function closeAddCourseModal() {
       document.getElementById('addCourseModal').style.display = 'none';
+    }
+
+    // ===== 个人资料功能 =====
+    const PROFILE_KEY = 'user_profile';
+    let cropCanvas, cropContext;
+    let imgSelection = { x: 0, y: 0, w: 100, h: 100 };
+    let isDragging = false;
+
+    function loadProfile() {
+      const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+      if (profile) {
+        if (profile.avatar) document.getElementById('profileAvatar').innerHTML = '<img src="' + profile.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+        if (profile.name) document.getElementById('profileName').textContent = profile.name;
+        if (profile.nickname) document.getElementById('profileNickname').textContent = profile.nickname;
+        if (profile.bio) document.getElementById('profileBio').textContent = profile.bio;
+        if (profile.github) document.getElementById('profileGithub').href = profile.github;
+      }
+    }
+
+    function openProfileModal() {
+      const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+      document.getElementById('avatarPreview').innerHTML = profile && profile.avatar ?
+        '<img src="' + profile.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">' : '🌸';
+      document.getElementById('profileNameInput').value = profile && profile.name ? profile.name : '';
+      document.getElementById('profileNicknameInput').value = profile && profile.nickname ? profile.nickname : '';
+      document.getElementById('profileBioInput').value = profile && profile.bio ? profile.bio : '';
+      document.getElementById('profileGithubInput').value = profile && profile.github ? profile.github : '';
+      document.getElementById('cropContainer').style.display = 'none';
+      document.getElementById('editProfileModal').style.display = 'flex';
+    }
+
+    function closeProfileModal() {
+      document.getElementById('editProfileModal').style.display = 'none';
+    }
+
+    function saveProfile() {
+      const avatarEl = document.getElementById('avatarPreview').querySelector('img');
+      const profile = {
+        avatar: avatarEl ? avatarEl.src : null,
+        name: document.getElementById('profileNameInput').value,
+        nickname: document.getElementById('profileNicknameInput').value,
+        bio: document.getElementById('profileBioInput').value,
+        github: document.getElementById('profileGithubInput').value
+      };
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      loadProfile();
+    }
+
+    function handleAvatarUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('cropCanvas');
+          const maxSize = 200;
+          const scale = Math.min(maxSize / img.width, maxSize / img.height);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          document.getElementById('cropContainer').style.display = 'block';
+          document.getElementById('avatarPreview').innerHTML = '<img src="' + evt.target.result + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+          initCrop(canvas, img);
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function initCrop(canvas, img) {
+      cropCanvas = canvas;
+      let startX, startY;
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;cursor:move;';
+      canvas.parentElement.style.position = 'relative';
+      canvas.parentElement.appendChild(overlay);
+      const rect = canvas.getBoundingClientRect();
+
+      function startDrag(e) {
+        isDragging = true;
+        const pos = e.touches ? e.touches[0] : e;
+        startX = pos.clientX - rect.left;
+        startY = pos.clientY - rect.top;
+      }
+
+      function doDrag(e) {
+        if (!isDragging) return;
+        const pos = e.touches ? e.touches[0] : e;
+        const x = pos.clientX - rect.left;
+        const y = pos.clientY - rect.top;
+        const dx = x - startX;
+        const dy = y - startY;
+        imgSelection.x = Math.max(0, Math.min(imgSelection.x + dx, rect.width - imgSelection.w));
+        imgSelection.y = Math.max(0, Math.min(imgSelection.y + dy, rect.height - imgSelection.h));
+        startX = x;
+        startY = y;
+        drawSelection();
+      }
+
+      function endDrag() { isDragging = false; }
+
+      overlay.addEventListener('mousedown', startDrag);
+      overlay.addEventListener('mousemove', doDrag);
+      overlay.addEventListener('mouseup', endDrag);
+      overlay.addEventListener('touchstart', startDrag);
+      overlay.addEventListener('touchmove', doDrag);
+      overlay.addEventListener('touchend', endDrag);
+
+      imgSelection = { x: 0, y: 0, w: Math.min(rect.width, rect.height), h: Math.min(rect.width, rect.height) };
+      drawSelection();
+    }
+
+    function drawSelection() {
+      cropContext = cropCanvas.getContext('2d');
+      cropContext.drawImage(cropCanvas, 0, 0);
+      cropContext.strokeStyle = '#FFB7C5';
+      cropContext.lineWidth = 2;
+      cropContext.strokeRect(imgSelection.x, imgSelection.y, imgSelection.w, imgSelection.h);
     }
   </script>
 </body>

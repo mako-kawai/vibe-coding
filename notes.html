@@ -224,7 +224,8 @@
         filesMeta.push(fileMeta);
         saveUploadedFilesMeta(filesMeta);
         renderUploadedFiles();
-        alert('PDF 上传成功！注意：PDF 仅记录上传信息，不存储实际文件。如需在线预览，请上传到 pdf/ 目录。');
+        const githubLink = 'https://github.com/mako-kawai/vibe-coding/tree/main/pdf';
+        alert('PDF 上传成功！\n\n如需在线预览，请将 PDF 文件上传到 GitHub 的 pdf/ 目录：\n' + githubLink + '\n\n上传后刷新页面即可预览。');
       } else {
         reader.readAsText(file);
       }
@@ -239,7 +240,9 @@
       if (!file) return;
 
       if (file.type === 'pdf') {
-        alert('PDF 预览需要在 pdf/ 目录放置实际 PDF 文件');
+        // 尝试从 pdf/ 目录加载 PDF
+        const pdfUrl = 'pdf/' + file.filename;
+        window.open(pdfUrl, '_blank');
         return;
       }
 
