@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mako的学习记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 樱花飘落容器 -->
+  <div class="sakura-container" id="sakuraContainer"></div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-content">
+      <a href="index.html" class="nav-logo">🌸 mako's Learning</a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">首页</a></li>
+        <li><a href="notes.html">课程笔记</a></li>
+        <li><a href="homework.html">课程作业</a></li>
+        <li><a href="help.html">帮助</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 主要内容 -->
+  <main class="main-content">
+    <!-- 个人介绍区 -->
+    <section id="about" class="section about-section">
+      <div class="container">
+        <div class="about-card fade-in">
+          <div class="avatar-wrapper">
+            <div class="avatar">🌸</div>
+          </div>
+          <div class="about-info">
+            <h1 class="name">mako</h1>
+            <p class="nickname">柚子厨 · 枕批</p>
+            <p class="bio">
+              正在探索编程世界的学生。旮旯给木爱好者，
+              希望创造有趣的作品。这是一个开始，希望在这里记录我的成长之路。
+            </p>
+            <div class="about-links">
+              <a href="https://github.com" target="_blank" rel="noopener" class="github-link">
+                <svg height="20" width="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                GitHub
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的课程区 -->
+    <section id="courses" class="section courses-section">
+      <div class="container">
+        <h2 class="section-title fade-in">📚 我的课程</h2>
+        <div class="courses-grid">
+          <!-- 氛围编程课程 -->
+          <div class="course-card-main fade-in">
+            <div class="course-card-header">
+              <span class="course-icon">🌸</span>
+              <div class="course-info">
+                <h3>氛围编程</h3>
+                <p class="course-meta">学习科学实验室 · 2学分</p>
+              </div>
+              <span class="course-status in-progress">学习中</span>
+            </div>
+            <p class="course-desc">
+              探索 AI 辅助编程的奥秘，学习网页开发、数据处理、SKILL 设计等实用技能。
+              不写代码！没有考试！氛围学习，轻松拿学分！
+            </p>
+            <div class="course-progress">
+              <div class="progress-bar">
+                <div class="progress-fill progress-10"></div>
+              </div>
+              <span class="progress-text">1/9 模块完成</span>
+            </div>
+            <div class="course-actions">
+              <a href="modules/module1.html" class="course-btn">开始学习</a>
+              <a href="notes.html?course=atmosphere" class="course-btn-secondary">查看笔记</a>
+            </div>
+          </div>
+
+          <!-- 高等数学 -->
+          <div class="course-card-main fade-in">
+            <div class="course-card-header">
+              <span class="course-icon">📐</span>
+              <div class="course-info">
+                <h3>高等数学</h3>
+                <p class="course-meta">Mathematics · 4学分</p>
+              </div>
+              <span class="course-status in-progress">学习中</span>
+            </div>
+            <p class="course-desc">
+              微积分、线性代数与微分方程，构建数学基础。
+            </p>
+            <div class="course-actions">
+              <a href="notes.html?course=math" class="course-btn-secondary">查看笔记</a>
+              <a href="pdf/math.html" class="course-btn-pdf">📄 PDF</a>
+            </div>
+          </div>
+
+          <!-- 数学物理方法 -->
+          <div class="course-card-main fade-in">
+            <div class="course-card-header">
+              <span class="course-icon">🔢</span>
+              <div class="course-info">
+                <h3>数学物理方法</h3>
+                <p class="course-meta">Physics · 4学分</p>
+              </div>
+              <span class="course-status upcoming">未开始</span>
+            </div>
+            <p class="course-desc">
+              复变函数、积分变换与特殊函数，物理学的数学工具。
+            </p>
+            <div class="course-actions">
+              <a href="notes.html?course=mathmethods" class="course-btn-secondary">查看笔记</a>
+              <a href="pdf/mathmethods.html" class="course-btn-pdf">📄 PDF</a>
+            </div>
+          </div>
+
+          <!-- 理论物理基础 -->
+          <div class="course-card-main fade-in">
+            <div class="course-card-header">
+              <span class="course-icon">⚛️</span>
+              <div class="course-info">
+                <h3>理论物理基础</h3>
+                <p class="course-meta">Physics · 4学分</p>
+              </div>
+              <span class="course-status upcoming">未开始</span>
+            </div>
+            <p class="course-desc">
+              经典力学、热力学与统计物理，探索物理世界的基本原理。
+            </p>
+            <div class="course-actions">
+              <a href="notes.html?course=theophy" class="course-btn-secondary">查看笔记</a>
+              <a href="pdf/theophy.html" class="course-btn-pdf">📄 PDF</a>
+            </div>
+          </div>
+
+          <!-- 中级宏观经济学 -->
+          <div class="course-card-main fade-in">
+            <div class="course-card-header">
+              <span class="course-icon">📊</span>
+              <div class="course-info">
+                <h3>中级宏观经济学</h3>
+                <p class="course-meta">Economics · 3学分</p>
+              </div>
+              <span class="course-status upcoming">未开始</span>
+            </div>
+            <p class="course-desc">
+              国民收入核算、经济增长与宏观经济政策分析。
+            </p>
+            <div class="course-actions">
+              <a href="notes.html?course=macro" class="course-btn-secondary">查看笔记</a>
+              <a href="pdf/macro.html" class="course-btn-pdf">📄 PDF</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>mako's Learning · 2026</p>
+      <p class="footer-note">漫步于樱花之森下</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

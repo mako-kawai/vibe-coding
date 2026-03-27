@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课程笔记 - mako的学习记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <!-- 樱花飘落容器 -->
+  <div class="sakura-container" id="sakuraContainer"></div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-content">
+      <a href="index.html" class="nav-logo">🌸 mako's Learning</a>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="notes.html" class="active">课程笔记</a></li>
+        <li><a href="homework.html">课程作业</a></li>
+        <li><a href="help.html">帮助</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 主要内容 -->
+  <main class="main-content">
+    <section class="section notes-section">
+      <div class="container">
+        <h2 class="section-title fade-in">📝 课程笔记</h2>
+
+        <div class="notes-header fade-in">
+          <div class="notes-course-selector">
+            <label for="courseSelect">选择课程：</label>
+            <select id="courseSelect" class="course-select">
+              <option value="atmosphere">🌸 氛围编程</option>
+              <option value="math">📐 高等数学</option>
+              <option value="mathmethods">🔢 数学物理方法</option>
+              <option value="theophy">⚛️ 理论物理基础</option>
+              <option value="macro">📊 中级宏观经济学</option>
+            </select>
+          </div>
+          <div class="notes-actions">
+            <button type="button" id="saveNotes" class="notes-btn">💾 保存</button>
+            <button type="button" id="clearNotes" class="notes-btn notes-btn-clear">🗑️ 清空</button>
+          </div>
+        </div>
+
+        <div class="notes-tabs fade-in">
+          <button type="button" class="notes-tab active" data-tab="edit">✏️ 编辑</button>
+          <button type="button" class="notes-tab" data-tab="preview">👁️ 预览</button>
+        </div>
+
+        <div class="notes-container fade-in">
+          <div id="notesEditor" class="notes-editor">
+            <textarea
+              id="notesTextarea"
+              class="notes-textarea"
+              placeholder="在这里用 Markdown 格式记录学习笔记...
+
+例如：
+# 标题
+## 二级标题
+
+- 列表项
+- 列表项
+
+**加粗文本** 和 *斜体文本*
+
+[链接](https://example.com)
+
+> 引用文本
+
+代码：`inline code`
+
+```
+代码块
+```"
+            ></textarea>
+          </div>
+          <div id="notesPreview" class="notes-preview">
+            <div class="markdown-body"></div>
+          </div>
+        </div>
+
+        <div class="notes-footer">
+          <span class="notes-status" id="notesStatus">选择课程后可开始记录</span>
+          <span class="notes-hint">使用 Markdown 格式书写，笔记将按课程分类保存</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>mako's Learning · 2026</p>
+      <p class="footer-note">在代码中寻找美</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

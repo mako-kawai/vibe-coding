@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课程作业 - mako的学习记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 樱花飘落容器 -->
+  <div class="sakura-container" id="sakuraContainer"></div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-content">
+      <a href="index.html" class="nav-logo">🌸 mako's Learning</a>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="notes.html">课程笔记</a></li>
+        <li><a href="homework.html" class="active">课程作业</a></li>
+        <li><a href="help.html">帮助</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 主要内容 -->
+  <main class="main-content">
+    <section class="section homework-section">
+      <div class="container">
+        <h2 class="section-title fade-in">📋 课程作业</h2>
+
+        <!-- 课程选择标签 -->
+        <div class="homework-course-tabs fade-in">
+          <button type="button" class="course-tab active" data-course="atmosphere">🌸 氛围编程</button>
+          <button type="button" class="course-tab" data-course="math">📐 高等数学</button>
+          <button type="button" class="course-tab" data-course="mathmethods">🔢 数学物理方法</button>
+          <button type="button" class="course-tab" data-course="theophy">⚛️ 理论物理基础</button>
+          <button type="button" class="course-tab" data-course="macro">📊 中级宏观经济学</button>
+        </div>
+
+        <!-- 氛围编程作业 -->
+        <div id="homeworkAtmosphere" class="homework-list">
+          <div class="homework-card fade-in">
+            <div class="homework-header">
+              <span class="homework-status completed">✓ 已完成</span>
+              <span class="homework-date">2026年3月</span>
+            </div>
+            <h3>作业一：搭建个人学习主页</h3>
+            <p>使用 HTML + CSS + JavaScript 创建个人学习主页，展示课程信息和个人介绍。</p>
+            <div class="homework-meta">
+              <span class="homework-module">模块一：认知与基础</span>
+            </div>
+            <a href="https://github.com" target="_blank" rel="noopener" class="homework-link">
+              <svg height="16" width="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              查看代码
+            </a>
+          </div>
+
+          <div class="homework-card fade-in">
+            <div class="homework-header">
+              <span class="homework-status in-progress">⏳ 进行中</span>
+              <span class="homework-date">2026年3月</span>
+            </div>
+            <h3>作业二：响应式布局练习</h3>
+            <p>实现一个适配手机和电脑的响应式页面布局。</p>
+            <div class="homework-meta">
+              <span class="homework-module">模块二：网页开发基础</span>
+            </div>
+            <a href="https://github.com" target="_blank" rel="noopener" class="homework-link">
+              <svg height="16" width="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              查看代码
+            </a>
+          </div>
+
+          <div class="homework-card fade-in">
+            <div class="homework-header">
+              <span class="homework-status pending">📋 待开始</span>
+              <span class="homework-date">2026年3月</span>
+            </div>
+            <h3>作业三：JavaScript 交互</h3>
+            <p>添加动态效果和用户交互功能到个人主页中。</p>
+            <div class="homework-meta">
+              <span class="homework-module">模块二：网页开发基础</span>
+            </div>
+            <a href="https://github.com" target="_blank" rel="noopener" class="homework-link">
+              <svg height="16" width="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              查看代码
+            </a>
+          </div>
+        </div>
+
+        <!-- 高等数学作业 -->
+        <div id="homeworkMath" class="homework-list" style="display: none;">
+          <div class="homework-empty fade-in">
+            <span class="empty-icon">📐</span>
+            <p>高等数学作业将在课程开始后显示</p>
+          </div>
+        </div>
+
+        <!-- 数学物理方法作业 -->
+        <div id="homeworkMathmethods" class="homework-list" style="display: none;">
+          <div class="homework-empty fade-in">
+            <span class="empty-icon">🔢</span>
+            <p>数学物理方法作业将在课程开始后显示</p>
+          </div>
+        </div>
+
+        <!-- 理论物理基础作业 -->
+        <div id="homeworkTheophy" class="homework-list" style="display: none;">
+          <div class="homework-empty fade-in">
+            <span class="empty-icon">⚛️</span>
+            <p>理论物理基础作业将在课程开始后显示</p>
+          </div>
+        </div>
+
+        <!-- 中级宏观经济学作业 -->
+        <div id="homeworkMacro" class="homework-list" style="display: none;">
+          <div class="homework-empty fade-in">
+            <span class="empty-icon">📊</span>
+            <p>中级宏观经济学作业将在课程开始后显示</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>mako's Learning · 2026</p>
+      <p class="footer-note">漫步于樱花之森下</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

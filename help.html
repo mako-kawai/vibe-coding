@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帮助 - mako的学习记录</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 樱花飘落容器 -->
+  <div class="sakura-container" id="sakuraContainer"></div>
+
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-content">
+      <a href="index.html" class="nav-logo">🌸 mako's Learning</a>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="notes.html">课程笔记</a></li>
+        <li><a href="homework.html">课程作业</a></li>
+        <li><a href="help.html" class="active">帮助</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 主要内容 -->
+  <main class="main-content">
+    <section class="section help-section">
+      <div class="container">
+        <h2 class="section-title fade-in">❓ 帮助中心</h2>
+
+        <div class="help-content fade-in">
+          <!-- 网站介绍 -->
+          <div class="help-card">
+            <h3>🌸 关于本站</h3>
+            <p>这是 mako 的个人学习记录网站，用于记录课程笔记、展示作业成果。</p>
+            <p>网站使用纯原生 HTML + CSS + JavaScript 构建，无任何外部框架依赖。</p>
+          </div>
+
+          <!-- 页面导航 -->
+          <div class="help-card">
+            <h3>🧭 页面导航</h3>
+            <ul class="help-list">
+              <li><strong>首页</strong> - 展示所有课程及学习进度</li>
+              <li><strong>课程笔记</strong> - 按课程分类记录 Markdown 笔记</li>
+              <li><strong>课程作业</strong> - 查看各课程的作业及完成状态</li>
+              <li><strong>帮助</strong> - 本页面，提供使用指南</li>
+            </ul>
+          </div>
+
+          <!-- 快捷操作 -->
+          <div class="help-card">
+            <h3>⌨️ 快捷操作</h3>
+            <div class="help-shortcuts">
+              <div class="shortcut-item">
+                <span class="shortcut-key">导航栏</span>
+                <span class="shortcut-desc">点击顶部导航栏可快速切换页面</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">课程卡片</span>
+                <span class="shortcut-desc">点击课程卡片可进入课程详情或开始学习</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">笔记保存</span>
+                <span class="shortcut-desc">编辑笔记后点击"💾 保存"按钮保存到本地</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">笔记切换</span>
+                <span class="shortcut-desc">使用"✏️ 编辑"和"👁️ 预览"切换笔记视图</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">作业链接</span>
+                <span class="shortcut-desc">点击"查看代码"可跳转到 GitHub 仓库</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Markdown 语法 -->
+          <div class="help-card">
+            <h3>📝 Markdown 语法参考</h3>
+            <div class="markdown-help">
+              <div class="md-example">
+                <code># 一级标题</code>
+                <span>标题</span>
+              </div>
+              <div class="md-example">
+                <code>## 二级标题</code>
+                <span>副标题</span>
+              </div>
+              <div class="md-example">
+                <code>**粗体文本**</code>
+                <span><strong>粗体文本</strong></span>
+              </div>
+              <div class="md-example">
+                <code>*斜体文本*</code>
+                <span><em>斜体文本</em></span>
+              </div>
+              <div class="md-example">
+                <code>- 无序列表项</code>
+                <span>• 无序列表项</span>
+              </div>
+              <div class="md-example">
+                <code>[链接文字](URL)</code>
+                <span>链接文字</span>
+              </div>
+              <div class="md-example">
+                <code>> 引用文本</code>
+                <span>引用文本</span>
+              </div>
+              <div class="md-example">
+                <code>`行内代码`</code>
+                <span>行内代码</span>
+              </div>
+              <div class="md-example">
+                <code>```代码块```</code>
+                <span>多行代码块</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 常见问题 -->
+          <div class="help-card">
+            <h3>❓ 常见问题</h3>
+            <div class="faq-item">
+              <h4>Q: 笔记会自动保存吗？</h4>
+              <p>A: 笔记不会自动保存，需要手动点击"💾 保存"按钮。关闭页面时会提示是否保存。</p>
+            </div>
+            <div class="faq-item">
+              <h4>Q: 笔记数据存储在哪里？</h4>
+              <p>A: 笔记存储在浏览器的 localStorage 中，每个课程的笔记独立保存。清除浏览器数据会丢失笔记。</p>
+            </div>
+            <div class="faq-item">
+              <h4>Q: 如何查看作业的代码？</h4>
+              <p>A: 点击作业卡片上的"查看代码"按钮，会跳转到 GitHub 仓库页面。</p>
+            </div>
+            <div class="faq-item">
+              <h4>Q: 为什么作业显示"待开始"？</h4>
+              <p>A: 这表示该作业尚未开始，通常是因为对应的课程模块还未学习到。</p>
+            </div>
+          </div>
+
+          <!-- 联系方式 -->
+          <div class="help-card">
+            <h3>📬 联系方式</h3>
+            <p>如有问题或建议，欢迎通过以下方式联系：</p>
+            <a href="https://github.com" target="_blank" rel="noopener" class="help-link">
+              <svg height="16" width="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <p>mako's Learning · 2026</p>
+      <p class="footer-note">在代码中寻找美</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
