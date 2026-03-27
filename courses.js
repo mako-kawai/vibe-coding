@@ -145,7 +145,7 @@ function renderCourseCards(containerId) {
   if (!container) return;
 
   const courses = getCoursesArray();
-  container.innerHTML = courses.map(course => {
+  container.innerHTML = courses.map((course, index) => {
     const statusClass = course.status === 'in-progress' ? 'in-progress' :
                         course.status === 'completed' ? 'completed' : 'upcoming';
     const statusText = course.status === 'in-progress' ? '学习中' :
@@ -187,6 +187,13 @@ function renderCourseCards(containerId) {
       </div>
     `;
   }).join('');
+
+  // 立即显示新添加的卡片（避免 IntersectionObserver 延迟）
+  setTimeout(() => {
+    container.querySelectorAll('.fade-in').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 100);
+    });
+  }, 0);
 }
 
 /**
