@@ -204,7 +204,7 @@
 
       if (courseHomework.length === 0) {
         listContainer.innerHTML = `
-          <div class="homework-empty fade-in">
+          <div class="homework-empty">
             <span class="empty-icon">${getCourseById(currentHomeworkCourse)?.icon || '📚'}</span>
             <p>暂无作业，点击下方按钮添加</p>
           </div>
@@ -230,7 +230,7 @@
                          dueStatus === 'soon' ? '⏰ 即将截止' : '📋 待完成';
 
         return `
-          <div class="homework-card fade-in ${hw.completed ? 'completed' : ''}">
+          <div class="homework-card ${hw.completed ? 'completed' : ''}">
             <div class="homework-header">
               <label class="homework-checkbox">
                 <input type="checkbox" ${hw.completed ? 'checked' : ''}
