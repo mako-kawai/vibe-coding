@@ -21,6 +21,7 @@
         <li><a href="index.html" class="active">首页</a></li>
         <li><a href="notes.html">课程笔记</a></li>
         <li><a href="homework.html">课程作业</a></li>
+        <li><a href="schedule.html">日程</a></li>
         <li><a href="help.html">帮助</a></li>
       </ul>
     </div>
@@ -58,113 +59,60 @@
     <!-- 我的课程区 -->
     <section id="courses" class="section courses-section">
       <div class="container">
-        <h2 class="section-title fade-in">📚 我的课程</h2>
-        <div class="courses-grid">
-          <!-- 氛围编程课程 -->
-          <div class="course-card-main fade-in">
-            <div class="course-card-header">
-              <span class="course-icon">🌸</span>
-              <div class="course-info">
-                <h3>氛围编程</h3>
-                <p class="course-meta">学习科学实验室 · 2学分</p>
-              </div>
-              <span class="course-status in-progress">学习中</span>
-            </div>
-            <p class="course-desc">
-              探索 AI 辅助编程的奥秘，学习网页开发、数据处理、SKILL 设计等实用技能。
-              不写代码！没有考试！氛围学习，轻松拿学分！
-            </p>
-            <div class="course-progress">
-              <div class="progress-bar">
-                <div class="progress-fill progress-10"></div>
-              </div>
-              <span class="progress-text">1/9 模块完成</span>
-            </div>
-            <div class="course-actions">
-              <a href="modules/module1.html" class="course-btn">开始学习</a>
-              <a href="notes.html?course=atmosphere" class="course-btn-secondary">查看笔记</a>
-            </div>
-          </div>
-
-          <!-- 高等数学 -->
-          <div class="course-card-main fade-in">
-            <div class="course-card-header">
-              <span class="course-icon">📐</span>
-              <div class="course-info">
-                <h3>高等数学</h3>
-                <p class="course-meta">Mathematics · 4学分</p>
-              </div>
-              <span class="course-status in-progress">学习中</span>
-            </div>
-            <p class="course-desc">
-              微积分、线性代数与微分方程，构建数学基础。
-            </p>
-            <div class="course-actions">
-              <a href="notes.html?course=math" class="course-btn-secondary">查看笔记</a>
-              <a href="pdf/math.html" class="course-btn-pdf">📄 PDF</a>
-            </div>
-          </div>
-
-          <!-- 数学物理方法 -->
-          <div class="course-card-main fade-in">
-            <div class="course-card-header">
-              <span class="course-icon">🔢</span>
-              <div class="course-info">
-                <h3>数学物理方法</h3>
-                <p class="course-meta">Physics · 4学分</p>
-              </div>
-              <span class="course-status upcoming">未开始</span>
-            </div>
-            <p class="course-desc">
-              复变函数、积分变换与特殊函数，物理学的数学工具。
-            </p>
-            <div class="course-actions">
-              <a href="notes.html?course=mathmethods" class="course-btn-secondary">查看笔记</a>
-              <a href="pdf/mathmethods.html" class="course-btn-pdf">📄 PDF</a>
-            </div>
-          </div>
-
-          <!-- 理论物理基础 -->
-          <div class="course-card-main fade-in">
-            <div class="course-card-header">
-              <span class="course-icon">⚛️</span>
-              <div class="course-info">
-                <h3>理论物理基础</h3>
-                <p class="course-meta">Physics · 4学分</p>
-              </div>
-              <span class="course-status upcoming">未开始</span>
-            </div>
-            <p class="course-desc">
-              经典力学、热力学与统计物理，探索物理世界的基本原理。
-            </p>
-            <div class="course-actions">
-              <a href="notes.html?course=theophy" class="course-btn-secondary">查看笔记</a>
-              <a href="pdf/theophy.html" class="course-btn-pdf">📄 PDF</a>
-            </div>
-          </div>
-
-          <!-- 中级宏观经济学 -->
-          <div class="course-card-main fade-in">
-            <div class="course-card-header">
-              <span class="course-icon">📊</span>
-              <div class="course-info">
-                <h3>中级宏观经济学</h3>
-                <p class="course-meta">Economics · 3学分</p>
-              </div>
-              <span class="course-status upcoming">未开始</span>
-            </div>
-            <p class="course-desc">
-              国民收入核算、经济增长与宏观经济政策分析。
-            </p>
-            <div class="course-actions">
-              <a href="notes.html?course=macro" class="course-btn-secondary">查看笔记</a>
-              <a href="pdf/macro.html" class="course-btn-pdf">📄 PDF</a>
-            </div>
-          </div>
+        <div class="section-header fade-in">
+          <h2 class="section-title">📚 我的课程</h2>
+          <button type="button" id="addCourseBtn" class="course-btn">➕ 添加课程</button>
+        </div>
+        <div class="courses-grid" id="coursesGrid">
+          <!-- 课程卡片将由 courses.js 动态渲染 -->
         </div>
       </div>
     </section>
   </main>
+
+  <!-- 添加课程模态框 -->
+  <div id="addCourseModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>添加新课程</h3>
+        <button type="button" class="modal-close" onclick="closeAddCourseModal()">&times;</button>
+      </div>
+      <form id="addCourseForm" class="modal-form">
+        <div class="form-group">
+          <label for="courseName">课程名称 *</label>
+          <input type="text" id="courseName" required placeholder="例如：数据结构">
+        </div>
+        <div class="form-group">
+          <label for="courseIcon">课程图标</label>
+          <input type="text" id="courseIcon" placeholder="例如：📚" value="📚">
+        </div>
+        <div class="form-group">
+          <label for="courseCredit">学分</label>
+          <input type="number" id="courseCredit" min="1" max="10" value="3">
+        </div>
+        <div class="form-group">
+          <label for="courseCategory">分类</label>
+          <input type="text" id="courseCategory" placeholder="例如：计算机科学">
+        </div>
+        <div class="form-group">
+          <label for="courseStatus">状态</label>
+          <select id="courseStatus">
+            <option value="upcoming">未开始</option>
+            <option value="in-progress">学习中</option>
+            <option value="completed">已完成</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="courseDesc">课程描述</label>
+          <textarea id="courseDesc" rows="3" placeholder="课程的简单描述..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="course-btn-secondary" onclick="closeAddCourseModal()">取消</button>
+          <button type="submit" class="course-btn">添加</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- 页脚 -->
   <footer class="footer">
@@ -174,6 +122,46 @@
     </div>
   </footer>
 
+  <script src="courses.js"></script>
   <script src="script.js"></script>
+  <script>
+    // 初始化课程卡片
+    document.addEventListener('DOMContentLoaded', function() {
+      renderCourseCards('coursesGrid');
+
+      // 添加课程按钮点击事件
+      document.getElementById('addCourseBtn').addEventListener('click', function() {
+        document.getElementById('addCourseModal').style.display = 'flex';
+      });
+
+      // 表单提交
+      document.getElementById('addCourseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const courseData = {
+          name: document.getElementById('courseName').value,
+          icon: document.getElementById('courseIcon').value || '📚',
+          credit: parseInt(document.getElementById('courseCredit').value) || 3,
+          category: document.getElementById('courseCategory').value || '自定义',
+          status: document.getElementById('courseStatus').value,
+          description: document.getElementById('courseDesc').value
+        };
+        addUserCourse(courseData);
+        renderCourseCards('coursesGrid');
+        closeAddCourseModal();
+        this.reset();
+      });
+
+      // 点击模态框外部关闭
+      document.getElementById('addCourseModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeAddCourseModal();
+        }
+      });
+    });
+
+    function closeAddCourseModal() {
+      document.getElementById('addCourseModal').style.display = 'none';
+    }
+  </script>
 </body>
 </html>

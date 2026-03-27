@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
   <!-- 樱花飘落容器 -->
@@ -22,6 +23,7 @@
         <li><a href="index.html">首页</a></li>
         <li><a href="notes.html" class="active">课程笔记</a></li>
         <li><a href="homework.html">课程作业</a></li>
+        <li><a href="schedule.html">日程</a></li>
         <li><a href="help.html">帮助</a></li>
       </ul>
     </div>
@@ -37,18 +39,16 @@
           <div class="notes-course-selector">
             <label for="courseSelect">选择课程：</label>
             <select id="courseSelect" class="course-select">
-              <option value="atmosphere">🌸 氛围编程</option>
-              <option value="math">📐 高等数学</option>
-              <option value="mathmethods">🔢 数学物理方法</option>
-              <option value="theophy">⚛️ 理论物理基础</option>
-              <option value="macro">📊 中级宏观经济学</option>
+              <!-- 课程选项将由 JavaScript 动态填充 -->
             </select>
           </div>
           <div class="notes-actions">
+            <button type="button" id="uploadFileBtn" class="notes-btn">📤 上传文件</button>
             <button type="button" id="saveNotes" class="notes-btn">💾 保存</button>
             <button type="button" id="clearNotes" class="notes-btn notes-btn-clear">🗑️ 清空</button>
           </div>
         </div>
+        <input type="file" id="fileInput" accept=".md,.txt,.pdf" class="file-input-hidden" title="选择文件上传">
 
         <div class="notes-tabs fade-in">
           <button type="button" class="notes-tab active" data-tab="edit">✏️ 编辑</button>
@@ -91,6 +91,32 @@
           <span class="notes-status" id="notesStatus">选择课程后可开始记录</span>
           <span class="notes-hint">使用 Markdown 格式书写，笔记将按课程分类保存</span>
         </div>
+
+        <!-- 已上传文件列表 -->
+        <div class="uploaded-files-section fade-in">
+          <h3 class="uploaded-files-title">📁 已上传文件</h3>
+          <div class="uploaded-files-list" id="uploadedFilesList">
+            <!-- 文件列表将由 JavaScript 渲染 -->
+          </div>
+        </div>
+
+        <!-- PDF 预览模态框 -->
+        <div id="pdfPreviewModal" class="modal pdf-preview-modal">
+          <div class="modal-content pdf-preview-content">
+            <div class="modal-header">
+              <h3 id="pdfPreviewTitle">PDF 预览</h3>
+              <button type="button" class="modal-close" onclick="closePdfPreview()">&times;</button>
+            </div>
+            <div class="pdf-viewer-container">
+              <canvas id="pdfCanvas"></canvas>
+            </div>
+            <div class="pdf-controls">
+              <button type="button" id="pdfPrevPage" class="pdf-btn">◀ 上一页</button>
+              <span id="pdfPageInfo">第 1 页 / 共 1 页</span>
+              <button type="button" id="pdfNextPage" class="pdf-btn">下一页 ▶</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -103,6 +129,182 @@
     </div>
   </footer>
 
+  <script src="courses.js"></script>
   <script src="script.js"></script>
+  <script>
+    // ===== 文件上传功能 =====
+    const UPLOADED_FILES_KEY = 'uploaded_files_meta';
+    let pdfDoc = null;
+    let pdfPageNum = 1;
+    let pdfRendering = false;
+
+    // 加载已上传文件列表
+    function loadUploadedFilesMeta() {
+      return JSON.parse(localStorage.getItem(UPLOADED_FILES_KEY) || '[]');
+    }
+
+    // 保存文件元数据
+    function saveUploadedFilesMeta(files) {
+      localStorage.setItem(UPLOADED_FILES_KEY, JSON.stringify(files));
+    }
+
+    // 渲染文件列表
+    function renderUploadedFiles() {
+      const list = document.getElementById('uploadedFilesList');
+      const files = loadUploadedFilesMeta();
+      const currentCourse = document.getElementById('courseSelect').value;
+      const courseFiles = files.filter(f => f.courseId === currentCourse);
+
+      if (courseFiles.length === 0) {
+        list.innerHTML = '<div class="uploaded-files-empty">暂无上传文件</div>';
+        return;
+      }
+
+      list.innerHTML = courseFiles.map(f => `
+        <div class="uploaded-file-item">
+          <span class="file-icon">${getFileIcon(f.type)}</span>
+          <span class="file-name">${f.filename}</span>
+          <span class="file-date">${new Date(f.uploadDate).toLocaleDateString()}</span>
+          <button type="button" class="file-action-btn" onclick="previewFile('${f.id}')">预览</button>
+          <button type="button" class="file-action-btn file-delete-btn" onclick="deleteUploadedFile('${f.id}')">删除</button>
+        </div>
+      `).join('');
+    }
+
+    // 获取文件图标
+    function getFileIcon(type) {
+      if (type === 'pdf') return '📕';
+      if (type === 'md') return '📝';
+      return '📄';
+    }
+
+    // 处理文件上传
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const courseId = document.getElementById('courseSelect').value;
+      const extension = file.name.split('.').pop().toLowerCase();
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const filesMeta = loadUploadedFilesMeta();
+        const fileMeta = {
+          id: 'file_' + Date.now(),
+          filename: file.name,
+          courseId,
+          type: extension === 'pdf' ? 'pdf' : (extension === 'md' ? 'md' : 'txt'),
+          uploadDate: new Date().toISOString(),
+          content: extension !== 'pdf' ? e.target.result : null
+        };
+        filesMeta.push(fileMeta);
+        saveUploadedFilesMeta(filesMeta);
+
+        // 如果是 Markdown 文件，追加到笔记
+        if (extension === 'md') {
+          const textarea = document.getElementById('notesTextarea');
+          const content = '\n\n---\n# ' + file.name + '\n\n' + e.target.result;
+          textarea.value += content;
+        }
+
+        renderUploadedFiles();
+        alert('文件上传成功！');
+      };
+
+      if (extension === 'pdf') {
+        // PDF 文件只存储元数据，实际文件不存储（太大了）
+        const filesMeta = loadUploadedFilesMeta();
+        const fileMeta = {
+          id: 'file_' + Date.now(),
+          filename: file.name,
+          courseId,
+          type: 'pdf',
+          uploadDate: new Date().toISOString()
+        };
+        filesMeta.push(fileMeta);
+        saveUploadedFilesMeta(filesMeta);
+        renderUploadedFiles();
+        alert('PDF 上传成功！注意：PDF 仅记录上传信息，不存储实际文件。如需在线预览，请上传到 pdf/ 目录。');
+      } else {
+        reader.readAsText(file);
+      }
+
+      event.target.value = '';
+    }
+
+    // 预览文件
+    function previewFile(fileId) {
+      const files = loadUploadedFilesMeta();
+      const file = files.find(f => f.id === fileId);
+      if (!file) return;
+
+      if (file.type === 'pdf') {
+        alert('PDF 预览需要在 pdf/ 目录放置实际 PDF 文件');
+        return;
+      }
+
+      // 显示 Markdown/文本内容
+      const textarea = document.getElementById('notesTextarea');
+      const preview = document.getElementById('notesPreview');
+      const markdownBody = preview.querySelector('.markdown-body');
+
+      textarea.value = file.content;
+      markdownBody.innerHTML = marked.parse(file.content);
+
+      // 切换到编辑/预览标签
+      document.querySelectorAll('.notes-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.notes-tab[data-tab="preview"]').classList.add('active');
+      document.getElementById('notesEditor').style.display = 'none';
+      document.getElementById('notesPreview').style.display = 'block';
+    }
+
+    // 删除文件
+    function deleteUploadedFile(fileId) {
+      if (!confirm('确定要删除这个文件吗？')) return;
+      const files = loadUploadedFilesMeta();
+      const filtered = files.filter(f => f.id !== fileId);
+      saveUploadedFilesMeta(filtered);
+      renderUploadedFiles();
+    }
+
+    // PDF 预览功能
+    function closePdfPreview() {
+      document.getElementById('pdfPreviewModal').style.display = 'none';
+      pdfDoc = null;
+    }
+
+    // 初始化笔记页面
+    document.addEventListener('DOMContentLoaded', function() {
+      // 填充课程选择下拉框
+      const courseSelect = document.getElementById('courseSelect');
+      const courses = getCoursesArray();
+      courses.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.icon + ' ' + c.name;
+        courseSelect.appendChild(option);
+      });
+
+      // 检查 URL 参数
+      const urlParams = new URLSearchParams(window.location.search);
+      const courseParam = urlParams.get('course');
+      if (courseParam) {
+        courseSelect.value = courseParam;
+      }
+
+      // 渲染上传文件列表
+      renderUploadedFiles();
+
+      // 文件上传按钮事件
+      document.getElementById('uploadFileBtn').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+      });
+
+      document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+      // 课程切换时刷新文件列表
+      courseSelect.addEventListener('change', renderUploadedFiles);
+    });
+  </script>
 </body>
 </html>

@@ -21,6 +21,7 @@
         <li><a href="index.html">首页</a></li>
         <li><a href="notes.html">课程笔记</a></li>
         <li><a href="homework.html">课程作业</a></li>
+        <li><a href="schedule.html">日程</a></li>
         <li><a href="help.html" class="active">帮助</a></li>
       </ul>
     </div>
@@ -36,17 +37,18 @@
           <!-- 网站介绍 -->
           <div class="help-card">
             <h3>🌸 关于本站</h3>
-            <p>这是 mako 的个人学习记录网站，用于记录课程笔记、展示作业成果。</p>
-            <p>网站使用纯原生 HTML + CSS + JavaScript 构建，无任何外部框架依赖。</p>
+            <p>这是 mako 的个人学习记录网站，用于记录课程笔记、管理日程、展示作业成果。</p>
+            <p>网站使用纯原生 HTML + CSS + JavaScript 构建，无任何外部框架依赖。数据保存在本地浏览器中。</p>
           </div>
 
           <!-- 页面导航 -->
           <div class="help-card">
             <h3>🧭 页面导航</h3>
             <ul class="help-list">
-              <li><strong>首页</strong> - 展示所有课程及学习进度</li>
-              <li><strong>课程笔记</strong> - 按课程分类记录 Markdown 笔记</li>
+              <li><strong>首页</strong> - 展示所有课程及学习进度，可添加新课程</li>
+              <li><strong>课程笔记</strong> - 按课程分类记录 Markdown 笔记，支持文件上传</li>
               <li><strong>课程作业</strong> - 查看各课程的作业及完成状态</li>
+              <li><strong>日程</strong> - 管理待办事项和课程表</li>
               <li><strong>帮助</strong> - 本页面，提供使用指南</li>
             </ul>
           </div>
@@ -74,6 +76,18 @@
               <div class="shortcut-item">
                 <span class="shortcut-key">作业链接</span>
                 <span class="shortcut-desc">点击"查看代码"可跳转到 GitHub 仓库</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">添加课程</span>
+                <span class="shortcut-desc">在首页点击"➕ 添加课程"按钮可添加新课程</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">添加待办</span>
+                <span class="shortcut-desc">在日程页面输入内容后按 Enter 或点击"添加"按钮</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-key">编辑课程表</span>
+                <span class="shortcut-desc">直接在课程表单元格中输入内容，自动保存</span>
               </div>
             </div>
           </div>
@@ -139,6 +153,18 @@
             <div class="faq-item">
               <h4>Q: 为什么作业显示"待开始"？</h4>
               <p>A: 这表示该作业尚未开始，通常是因为对应的课程模块还未学习到。</p>
+            </div>
+            <div class="faq-item">
+              <h4>Q: 如何添加新的课程？</h4>
+              <p>A: 在首页点击"➕ 添加课程"按钮，填写课程名称、图标、学分等信息即可。</p>
+            </div>
+            <div class="faq-item">
+              <h4>Q: 待办事项的截止日期颜色是什么意思？</h4>
+              <p>A: 红色表示已过期，橙色表示今天到期，黄色表示即将到期（3天内）。</p>
+            </div>
+            <div class="faq-item">
+              <h4>Q: 上传的文件存储在哪里？</h4>
+              <p>A: Markdown 和文本文件内容存储在 localStorage 中，PDF 仅记录元数据。如需 PDF 预览，请将实际 PDF 文件放入 pdf/ 目录。</p>
             </div>
           </div>
 
