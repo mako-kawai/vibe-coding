@@ -35,10 +35,19 @@ function createSakura() {
 function handleScrollAnimation() {
   const elements = document.querySelectorAll('.fade-in');
 
+  // 立即显示已在视口中的元素
+  elements.forEach((el, index) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setTimeout(() => {
+        el.classList.add('visible');
+      }, index * 100);
+    }
+  });
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, index) => {
       if (entry.isIntersecting) {
-        // 添加延迟，实现依次出现
         setTimeout(() => {
           entry.target.classList.add('visible');
         }, index * 100);
