@@ -276,8 +276,9 @@
     // ===== 个人资料功能 =====
     const PROFILE_KEY = 'user_profile';
     let cropCanvas, cropContext;
-    let imgSelection = { x: 0, y: 0, w: 100, h: 100 };
+    let imgSelection = { x: 0, y: 0, w: 80, h: 80 };
     let isDragging = false;
+    let originalImage = null;
 
     function loadProfile() {
       const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
@@ -308,8 +309,15 @@
 
     function saveProfile() {
       const avatarEl = document.getElementById('avatarPreview').querySelector('img');
+      // Apply crop if available
+      let avatarSrc = null;
+      if (avatarEl && originalImage) {
+        avatarSrc = applyCrop();
+      } else if (avatarEl) {
+        avatarSrc = avatarEl.src;
+      }
       const profile = {
-        avatar: avatarEl ? avatarEl.src : null,
+        avatar: avatarSrc,
         name: document.getElementById('profileNameInput').value,
         nickname: document.getElementById('profileNicknameInput').value,
         bio: document.getElementById('profileBioInput').value,
@@ -317,6 +325,8 @@
       };
       localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
       loadProfile();
+      // Reset crop state
+      originalImage = null;
     }
 
     function handleAvatarUpload(e) {
@@ -326,32 +336,50 @@
       reader.onload = function(evt) {
         const img = new Image();
         img.onload = function() {
+          originalImage = img;
           const canvas = document.getElementById('cropCanvas');
           const maxSize = 200;
           const scale = Math.min(maxSize / img.width, maxSize / img.height);
           canvas.width = img.width * scale;
           canvas.height = img.height * scale;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          cropCanvas = canvas;
+          cropContext = canvas.getContext('2d');
+          cropContext.drawImage(img, 0, 0, canvas.width, canvas.height);
           document.getElementById('cropContainer').style.display = 'block';
           document.getElementById('avatarPreview').innerHTML = '<img src="' + evt.target.result + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
-          initCrop(canvas, img);
+          initCrop(img, canvas);
         };
         img.src = evt.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    function initCrop(canvas, img) {
-      cropCanvas = canvas;
-      let startX, startY;
-      const overlay = document.createElement('div');
+    function initCrop(img, canvas) {
+      const container = canvas.parentElement;
+      container.style.position = 'relative';
+
+      // Create overlay for selection
+      let overlay = container.querySelector('.crop-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'crop-overlay';
+        container.appendChild(overlay);
+      }
       overlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;cursor:move;';
-      canvas.parentElement.style.position = 'relative';
-      canvas.parentElement.appendChild(overlay);
+
       const rect = canvas.getBoundingClientRect();
+      const size = Math.min(rect.width, rect.height);
+      imgSelection = {
+        x: (rect.width - size) / 2,
+        y: (rect.height - size) / 2,
+        w: size,
+        h: size
+      };
+
+      let startX = 0, startY = 0;
 
       function startDrag(e) {
+        e.preventDefault();
         isDragging = true;
         const pos = e.touches ? e.touches[0] : e;
         startX = pos.clientX - rect.left;
@@ -360,6 +388,7 @@
 
       function doDrag(e) {
         if (!isDragging) return;
+        e.preventDefault();
         const pos = e.touches ? e.touches[0] : e;
         const x = pos.clientX - rect.left;
         const y = pos.clientY - rect.top;
@@ -374,23 +403,46 @@
 
       function endDrag() { isDragging = false; }
 
-      overlay.addEventListener('mousedown', startDrag);
-      overlay.addEventListener('mousemove', doDrag);
-      overlay.addEventListener('mouseup', endDrag);
-      overlay.addEventListener('touchstart', startDrag);
-      overlay.addEventListener('touchmove', doDrag);
-      overlay.addEventListener('touchend', endDrag);
+      overlay.onmousedown = startDrag;
+      overlay.onmousemove = doDrag;
+      overlay.onmouseup = endDrag;
+      overlay.ontouchstart = startDrag;
+      overlay.ontouchmove = doDrag;
+      overlay.ontouchend = endDrag;
 
-      imgSelection = { x: 0, y: 0, w: Math.min(rect.width, rect.height), h: Math.min(rect.width, rect.height) };
       drawSelection();
     }
 
     function drawSelection() {
-      cropContext = cropCanvas.getContext('2d');
-      cropContext.drawImage(cropCanvas, 0, 0);
+      if (!cropCanvas || !cropContext || !originalImage) return;
+      // Redraw full image
+      cropContext.drawImage(originalImage, 0, 0, cropCanvas.width, cropCanvas.height);
+      // Draw darkened overlay outside selection
+      cropContext.fillStyle = 'rgba(0,0,0,0.5)';
+      cropContext.fillRect(0, 0, cropCanvas.width, imgSelection.y);
+      cropContext.fillRect(0, imgSelection.y, imgSelection.x, imgSelection.h);
+      cropContext.fillRect(imgSelection.x + imgSelection.w, imgSelection.y, cropCanvas.width - imgSelection.x - imgSelection.w, imgSelection.h);
+      cropContext.fillRect(0, imgSelection.y + imgSelection.h, cropCanvas.width, cropCanvas.height - imgSelection.y - imgSelection.h);
+      // Draw selection border
       cropContext.strokeStyle = '#FFB7C5';
       cropContext.lineWidth = 2;
       cropContext.strokeRect(imgSelection.x, imgSelection.y, imgSelection.w, imgSelection.h);
+    }
+
+    function applyCrop() {
+      if (!originalImage || !cropCanvas) return null;
+      const cropCanvas2 = document.createElement('canvas');
+      const size = Math.min(imgSelection.w, imgSelection.h);
+      cropCanvas2.width = size;
+      cropCanvas2.height = size;
+      const ctx = cropCanvas2.getContext('2d');
+      ctx.drawImage(originalImage,
+        imgSelection.x * (originalImage.width / cropCanvas.width),
+        imgSelection.y * (originalImage.height / cropCanvas.height),
+        size * (originalImage.width / cropCanvas.width),
+        size * (originalImage.height / cropCanvas.height),
+        0, 0, size, size);
+      return cropCanvas2.toDataURL('image/png');
     }
   </script>
 </body>

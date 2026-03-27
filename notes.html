@@ -278,21 +278,12 @@
 
     // 初始化笔记页面
     document.addEventListener('DOMContentLoaded', function() {
-      // 填充课程选择下拉框
-      const courseSelect = document.getElementById('courseSelect');
-      const courses = getCoursesArray();
-      courses.forEach(c => {
-        const option = document.createElement('option');
-        option.value = c.id;
-        option.textContent = c.icon + ' ' + c.name;
-        courseSelect.appendChild(option);
-      });
-
-      // 检查 URL 参数
+      // 检查 URL 参数（课程选择由 script.js initNotes 处理）
       const urlParams = new URLSearchParams(window.location.search);
       const courseParam = urlParams.get('course');
       if (courseParam) {
-        courseSelect.value = courseParam;
+        const courseSelect = document.getElementById('courseSelect');
+        if (courseSelect) courseSelect.value = courseParam;
       }
 
       // 渲染上传文件列表
@@ -306,7 +297,10 @@
       document.getElementById('fileInput').addEventListener('change', handleFileUpload);
 
       // 课程切换时刷新文件列表
-      courseSelect.addEventListener('change', renderUploadedFiles);
+      const courseSelect = document.getElementById('courseSelect');
+      if (courseSelect) {
+        courseSelect.addEventListener('change', renderUploadedFiles);
+      }
     });
   </script>
 </body>
