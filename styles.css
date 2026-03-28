@@ -2461,7 +2461,7 @@ ul {
 
 /* ===== 页脚 ===== */
 .footer {
-  background: var(--bg-card);
+  background: transparent;
   padding: 40px 0;
   text-align: center;
   border-top: 1px solid rgba(255, 183, 197, 0.3);
