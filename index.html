@@ -222,7 +222,7 @@
           <div id="detailIntroView" class="detail-intro-view">
             <p id="detailIntroText">暂无简介</p>
           </div>
-          <div id="detailIntroEdit" class="detail-intro-edit" style="display: none;">
+          <div id="detailIntroEdit" class="detail-intro-edit hidden">
             <textarea id="detailIntroInput" rows="4" placeholder="输入课程简介..."></textarea>
             <div class="detail-edit-actions">
               <button type="button" class="course-btn-secondary" onclick="cancelCourseIntroEdit()">取消</button>
@@ -246,7 +246,7 @@
               <button type="button" class="course-btn" onclick="saveDetailNotes()">💾 保存笔记</button>
             </div>
           </div>
-          <div id="detailFilesPanel" class="detail-panel" style="display: none;">
+          <div id="detailFilesPanel" class="detail-panel hidden">
             <div class="detail-files-upload">
               <p class="upload-hint">上传文件后，请将文件放入以下 GitHub 文件夹：</p>
               <div class="github-folder-path" id="githubFolderPath"></div>

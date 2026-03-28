@@ -339,9 +339,16 @@ function openCourseDetailModal(courseId) {
   const notes = localStorage.getItem(notesKey) || '';
   document.getElementById('detailNotesTextarea').value = notes;
 
-  // 设置 GitHub 文件夹路径
-  const folderPath = `https://github.com/mako-kawai/vibe-coding/tree/main/${courseId}`;
-  document.getElementById('githubFolderPath').innerHTML = `<a href="${folderPath}" target="_blank">${folderPath}</a>`;
+  // 设置 GitHub 文件夹路径（支持多用户）
+  const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+  const githubRepo = userSettings.githubRepo || '';
+  const githubFolderPath = document.getElementById('githubFolderPath');
+  if (githubRepo) {
+    const folderPath = `https://github.com/${githubRepo}/tree/main/${courseId}`;
+    githubFolderPath.innerHTML = `<a href="${folderPath}" target="_blank">${folderPath}</a>`;
+  } else {
+    githubFolderPath.innerHTML = `<span class="github-hint">⚙️ 请在设置中配置您的 GitHub 仓库路径</span>`;
+  }
 
   // 渲染文件列表
   renderDetailFiles(courseId);

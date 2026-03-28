@@ -835,6 +835,12 @@ ul {
   width: 18px;
   height: 18px;
   accent-color: var(--sakura-pink);
+  appearance: none;
+  cursor: pointer;
+}
+
+.detail-hw-checkbox .checkmark {
+  display: none;
 }
 
 .detail-hw-content {

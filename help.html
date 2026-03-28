@@ -187,6 +187,19 @@
               GitHub
             </a>
           </div>
+
+          <!-- 自定义设置 -->
+          <div class="help-card">
+            <h3>⚙️ 自定义设置</h3>
+            <p>如果您想使用自己的 GitHub 仓库来存储课程资料，请填写以下信息：</p>
+            <div class="form-group" style="margin-top: 12px;">
+              <label for="githubRepoInput" style="display: block; margin-bottom: 6px;">GitHub 仓库路径</label>
+              <input type="text" id="githubRepoInput" placeholder="例如：username/vibe-coding" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
+              <small style="color: #888; display: block; margin-top: 4px;">格式：username/仓库名</small>
+            </div>
+            <button type="button" class="course-btn" style="margin-top: 10px;" onclick="saveGitHubRepo()">保存设置</button>
+            <div id="githubSaveStatus" style="margin-top: 8px;"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -201,5 +214,28 @@
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    // 加载已保存的 GitHub 仓库设置
+    function loadGitHubRepoSetting() {
+      const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+      if (userSettings.githubRepo) {
+        document.getElementById('githubRepoInput').value = userSettings.githubRepo;
+      }
+    }
+
+    // 保存 GitHub 仓库设置
+    function saveGitHubRepo() {
+      const repo = document.getElementById('githubRepoInput').value.trim();
+      const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+      userSettings.githubRepo = repo;
+      localStorage.setItem('user_settings', JSON.stringify(userSettings));
+      const status = document.getElementById('githubSaveStatus');
+      status.textContent = repo ? '✅ 已保存您的 GitHub 仓库路径' : '✅ 已清除设置';
+      status.style.color = '#2e8b57';
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadGitHubRepoSetting);
+  </script>
 </body>
 </html>
