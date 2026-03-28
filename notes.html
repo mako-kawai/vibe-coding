@@ -44,12 +44,25 @@
               <!-- 课程选项将由 JavaScript 动态填充 -->
             </select>
           </div>
+          <div class="notes-selector-row">
+            <div class="notes-list-selector">
+              <label for="noteSelect">选择笔记：</label>
+              <select id="noteSelect" class="course-select">
+                <option value="">➕ 新建笔记</option>
+              </select>
+              <button type="button" id="newNoteBtn" class="notes-btn notes-btn-small" onclick="createNewNote()">🆕 新建</button>
+              <button type="button" id="deleteNoteBtn" class="notes-btn notes-btn-small notes-btn-clear" onclick="deleteCurrentNote()">🗑️ 删除</button>
+            </div>
+          </div>
           <div class="notes-actions">
-            <button type="button" id="uploadFileBtn" class="notes-btn">📤 上传文件</button>
+            <a href="https://markdown.com.cn/intro.html" target="_blank" rel="noopener" class="notes-btn notes-btn-link">📖 Markdown教程</a>
+            <button type="button" id="importMdBtn" class="notes-btn" onclick="importMarkdownFile()">📥 导入</button>
+            <button type="button" id="exportMdBtn" class="notes-btn" onclick="exportMarkdownFile()">📤 导出</button>
+            <button type="button" id="uploadFileBtn" class="notes-btn">📎 上传文件</button>
             <button type="button" id="saveNotes" class="notes-btn">💾 保存</button>
-            <button type="button" id="clearNotes" class="notes-btn notes-btn-clear">🗑️ 清空</button>
           </div>
         </div>
+        <input type="file" id="mdImportInput" accept=".md,.txt" class="file-input-hidden" title="导入Markdown文件">
         <input type="file" id="fileInput" accept=".md,.txt,.pdf" class="file-input-hidden" title="选择文件上传">
 
         <!-- 笔记标签 -->
@@ -177,15 +190,29 @@
                 <input type="text" id="tagName" required placeholder="例如：重点、复习、公式">
               </div>
               <div class="form-group">
+                <label for="tagIcon">标签图标</label>
+                <input type="text" id="tagIcon" placeholder="例如：🌟、🔥、📝（留空使用默认）" maxlength="2">
+              </div>
+              <div class="form-group">
                 <label for="tagColor">标签颜色</label>
-                <select id="tagColor">
-                  <option value="#FFB7C5">🌸 粉色</option>
-                  <option value="#98D8C8">🌿 绿色</option>
-                  <option value="#FFD700">⭐ 金色</option>
-                  <option value="#87CEEB">🌊 蓝色</option>
-                  <option value="#DDA0DD">🍇 紫色</option>
-                  <option value="#FFA07A">🦐 橙色</option>
-                </select>
+                <div class="tag-color-input-row">
+                  <input type="color" id="tagColorPicker" value="#FFB7C5" onchange="updateTagColorInput()">
+                  <input type="text" id="tagColor" value="#FFB7C5" placeholder="#FFB7C5" pattern="^#[0-9A-Fa-f]{6}$">
+                </div>
+                <p class="form-hint">输入RGB值，如 #FFB7C5</p>
+              </div>
+              <div class="form-group">
+                <label>预设颜色</label>
+                <div class="tag-color-presets">
+                  <button type="button" class="color-preset" style="background:#FFB7C5" onclick="setTagColor('#FFB7C5')" title="粉色"></button>
+                  <button type="button" class="color-preset" style="background:#98D8C8" onclick="setTagColor('#98D8C8')" title="绿色"></button>
+                  <button type="button" class="color-preset" style="background:#FFD700" onclick="setTagColor('#FFD700')" title="金色"></button>
+                  <button type="button" class="color-preset" style="background:#87CEEB" onclick="setTagColor('#87CEEB')" title="蓝色"></button>
+                  <button type="button" class="color-preset" style="background:#DDA0DD" onclick="setTagColor('#DDA0DD')" title="紫色"></button>
+                  <button type="button" class="color-preset" style="background:#FFA07A" onclick="setTagColor('#FFA07A')" title="橙色"></button>
+                  <button type="button" class="color-preset" style="background:#FF6B6B" onclick="setTagColor('#FF6B6B')" title="红色"></button>
+                  <button type="button" class="color-preset" style="background:#4ECDC4" onclick="setTagColor('#4ECDC4')" title="青色"></button>
+                </div>
               </div>
               <div class="form-actions">
                 <button type="button" class="course-btn-secondary" onclick="closeAddTagModal()">取消</button>
@@ -293,11 +320,12 @@
 
       container.innerHTML = tags.map(tag => {
         const isSelected = selectedTags.includes(tag.id);
+        const icon = tag.icon ? tag.icon + ' ' : '';
         return `
         <span class="tag-item ${isSelected ? 'tag-selected' : ''}"
               style="background-color: ${tag.color}20; border-color: ${tag.color};"
               onclick="toggleTagFilter('${tag.id}')" title="点击筛选">
-          <span class="tag-name">${tag.name}${isSelected ? ' ✓' : ''}</span>
+          <span class="tag-name">${icon}${tag.name}${isSelected ? ' ✓' : ''}</span>
           <button type="button" class="tag-delete" onclick="event.stopPropagation(); deleteTag('${tag.id}')">×</button>
         </span>
       `}).join('');
@@ -334,7 +362,9 @@
     // 打开添加标签模态框
     function openAddTagModal() {
       document.getElementById('tagName').value = '';
+      document.getElementById('tagIcon').value = '';
       document.getElementById('tagColor').value = '#FFB7C5';
+      document.getElementById('tagColorPicker').value = '#FFB7C5';
       document.getElementById('addTagModal').style.display = 'flex';
     }
 
@@ -343,14 +373,32 @@
       document.getElementById('addTagModal').style.display = 'none';
     }
 
+    // 更新颜色选择器
+    function updateTagColorInput() {
+      const picker = document.getElementById('tagColorPicker');
+      const input = document.getElementById('tagColor');
+      if (picker && input) {
+        input.value = picker.value.toUpperCase();
+      }
+    }
+
+    // 设置预设颜色
+    function setTagColor(color) {
+      const picker = document.getElementById('tagColorPicker');
+      const input = document.getElementById('tagColor');
+      if (picker) picker.value = color;
+      if (input) input.value = color.toUpperCase();
+    }
+
     // 创建标签
-    function createTag(name, color) {
+    function createTag(name, color, icon) {
       const tags = loadNotesTags();
       const currentCourse = document.getElementById('courseSelect').value;
       tags.push({
         id: 'tag_' + Date.now(),
         name,
         color,
+        icon: icon || '',
         courseId: currentCourse,
         createdAt: new Date().toISOString()
       });
@@ -714,8 +762,9 @@
         e.preventDefault();
         const name = document.getElementById('tagName').value.trim();
         const color = document.getElementById('tagColor').value;
+        const icon = document.getElementById('tagIcon').value.trim();
         if (name) {
-          createTag(name, color);
+          createTag(name, color, icon);
           closeAddTagModal();
         }
       });

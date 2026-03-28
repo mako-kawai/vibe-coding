@@ -496,6 +496,365 @@ function initNotes() {
   });
 }
 
+// ===== 多笔记功能 =====
+let currentNoteId = null;
+let lastSavedContent = '';
+
+function getNotesListKey(courseId) {
+  return 'notes_list_' + courseId;
+}
+
+function getNoteContentKey(courseId, noteId) {
+  return 'note_content_' + courseId + '_' + noteId;
+}
+
+function formatDate(timestamp) {
+  const d = new Date(timestamp);
+  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function loadNotesList(courseId) {
+  const noteSelect = document.getElementById('noteSelect');
+  if (!noteSelect) return;
+
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  const currentValue = noteSelect.value;
+
+  noteSelect.innerHTML = '<option value="">➕ 新建笔记</option>';
+  notesList.forEach(note => {
+    const option = document.createElement('option');
+    option.value = note.id;
+    option.textContent = note.name + ' (' + formatDate(note.updatedAt) + ')';
+    noteSelect.appendChild(option);
+  });
+
+  if (currentValue && notesList.find(n => n.id === currentValue)) {
+    noteSelect.value = currentValue;
+  } else if (notesList.length > 0) {
+    noteSelect.value = notesList[0].id;
+  }
+}
+
+function loadNoteContent(courseId, noteId) {
+  const textarea = document.getElementById('notesTextarea');
+  const statusEl = document.getElementById('notesStatus');
+  const previewPanel = document.getElementById('notesPreview');
+  const markdownBody = previewPanel ? previewPanel.querySelector('.markdown-body') : null;
+
+  if (!noteId) {
+    textarea.value = '';
+    lastSavedContent = '';
+    currentNoteId = null;
+    if (statusEl) statusEl.textContent = '新建笔记中...';
+    if (markdownBody) markdownBody.innerHTML = '';
+    return;
+  }
+
+  currentNoteId = noteId;
+  const content = localStorage.getItem(getNoteContentKey(courseId, noteId)) || '';
+  textarea.value = content;
+  lastSavedContent = content;
+
+  if (statusEl) {
+    const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+    const note = notesList.find(n => n.id === noteId);
+    statusEl.textContent = note ? '已加载: ' + note.name : '已加载笔记';
+  }
+
+  if (markdownBody) {
+    renderNotePreview(content);
+  }
+}
+
+function saveCurrentNote() {
+  const courseSelect = document.getElementById('courseSelect');
+  const textarea = document.getElementById('notesTextarea');
+  const statusEl = document.getElementById('notesStatus');
+  if (!courseSelect || !textarea) return;
+
+  const courseId = courseSelect.value;
+  const content = textarea.value;
+
+  if (!currentNoteId) {
+    showToast('请先选择或创建笔记', 'info');
+    return;
+  }
+
+  localStorage.setItem(getNoteContentKey(courseId, currentNoteId), content);
+  lastSavedContent = content;
+
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  const noteIndex = notesList.findIndex(n => n.id === currentNoteId);
+  if (noteIndex !== -1) {
+    notesList[noteIndex].updatedAt = Date.now();
+    localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
+    loadNotesList(courseId);
+  }
+
+  if (statusEl) statusEl.textContent = '已保存 ' + new Date().toLocaleTimeString();
+  showToast('笔记已保存', 'success');
+}
+
+function createNewNote() {
+  const courseSelect = document.getElementById('courseSelect');
+  const noteSelect = document.getElementById('noteSelect');
+  if (!courseSelect || !noteSelect) return;
+
+  const courseId = courseSelect.value;
+  const noteName = prompt('请输入笔记名称：', '新笔记 ' + new Date().toLocaleDateString());
+  if (!noteName) return;
+
+  const noteId = 'note_' + Date.now();
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  notesList.unshift({
+    id: noteId,
+    name: noteName,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  });
+  localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
+
+  loadNotesList(courseId);
+  noteSelect.value = noteId;
+  loadNoteContent(courseId, noteId);
+  showToast('已创建新笔记', 'success');
+}
+
+function deleteCurrentNote() {
+  const courseSelect = document.getElementById('courseSelect');
+  const noteSelect = document.getElementById('noteSelect');
+  if (!courseSelect || !noteSelect) return;
+
+  const courseId = courseSelect.value;
+  if (!currentNoteId) {
+    showToast('没有要删除的笔记', 'info');
+    return;
+  }
+
+  if (!confirm('确定要删除当前笔记吗？此操作不可恢复。')) return;
+
+  let notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  notesList = notesList.filter(n => n.id !== currentNoteId);
+  localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
+  localStorage.removeItem(getNoteContentKey(courseId, currentNoteId));
+
+  if (notesList.length > 0) {
+    noteSelect.value = notesList[0].id;
+    loadNoteContent(courseId, notesList[0].id);
+  } else {
+    loadNoteContent(courseId, null);
+  }
+  loadNotesList(courseId);
+  showToast('笔记已删除', 'success');
+}
+
+function importMarkdownFile() {
+  const courseSelect = document.getElementById('courseSelect');
+  const noteSelect = document.getElementById('noteSelect');
+  const mdImportInput = document.getElementById('mdImportInput');
+  if (!courseSelect || !noteSelect || !mdImportInput) return;
+
+  mdImportInput.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const courseId = courseSelect.value;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const noteId = 'note_' + Date.now();
+      const noteName = file.name.replace('.md', '').replace('.txt', '');
+      const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+      notesList.unshift({
+        id: noteId,
+        name: noteName,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+      localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
+      localStorage.setItem(getNoteContentKey(courseId, noteId), evt.target.result);
+
+      loadNotesList(courseId);
+      noteSelect.value = noteId;
+      loadNoteContent(courseId, noteId);
+      showToast('已导入: ' + noteName, 'success');
+    };
+    reader.readAsText(file);
+    mdImportInput.value = '';
+  };
+  mdImportInput.click();
+}
+
+function exportMarkdownFile() {
+  const courseSelect = document.getElementById('courseSelect');
+  const textarea = document.getElementById('notesTextarea');
+  if (!courseSelect || !textarea) return;
+
+  const courseId = courseSelect.value;
+  const content = textarea.value;
+  if (!content) {
+    showToast('没有内容可导出', 'info');
+    return;
+  }
+
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  const note = notesList.find(n => n.id === currentNoteId);
+  const filename = (note ? note.name : '笔记') + '.md';
+
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('已导出: ' + filename, 'success');
+}
+
+function renderNotePreview(content) {
+  const previewPanel = document.getElementById('notesPreview');
+  const markdownBody = previewPanel ? previewPanel.querySelector('.markdown-body') : null;
+  if (typeof marked !== 'undefined' && markdownBody) {
+    markdownBody.innerHTML = marked.parse(content);
+    if (typeof renderMathInElement !== 'undefined') {
+      renderMathInElement(markdownBody, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false},
+          {left: '\\[', right: '\\]', display: true},
+          {left: '\\(', right: '\\)', display: false}
+        ],
+        throwOnError: false
+      });
+    }
+  }
+}
+
+// ===== 课程笔记功能 =====
+function initNotes() {
+  const textarea = document.getElementById('notesTextarea');
+  const courseSelect = document.getElementById('courseSelect');
+  const noteSelect = document.getElementById('noteSelect');
+  const editorPanel = document.getElementById('notesEditor');
+  const previewPanel = document.getElementById('notesPreview');
+  const markdownBody = previewPanel ? previewPanel.querySelector('.markdown-body') : null;
+  const saveBtn = document.getElementById('saveNotes');
+  const statusEl = document.getElementById('notesStatus');
+  const tabs = document.querySelectorAll('.notes-tab');
+  const mdImportInput = document.getElementById('mdImportInput');
+
+  if (!textarea) return;
+
+  // 填充课程选择下拉框（去重）
+  if (courseSelect) {
+    const existingValues = Array.from(courseSelect.options).map(o => o.value);
+    const courses = typeof getCoursesArray !== 'undefined' ? getCoursesArray() : [];
+    courses.forEach(c => {
+      if (!existingValues.includes(c.id)) {
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.icon + ' ' + c.name;
+        courseSelect.appendChild(option);
+      }
+    });
+  }
+
+  // 初始化笔记列表
+  const currentCourse = courseSelect ? courseSelect.value : 'atmosphere';
+  loadNotesList(currentCourse);
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(currentCourse)) || '[]');
+  if (notesList.length > 0) {
+    loadNoteContent(currentCourse, notesList[0].id);
+  }
+
+  // 课程切换
+  if (courseSelect) {
+    courseSelect.addEventListener('change', () => {
+      const courseId = courseSelect.value;
+      loadNotesList(courseId);
+      const notes = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+      if (notes.length > 0) {
+        loadNoteContent(courseId, notes[0].id);
+      } else {
+        loadNoteContent(courseId, null);
+      }
+    });
+  }
+
+  // 笔记切换
+  if (noteSelect) {
+    noteSelect.addEventListener('change', () => {
+      const courseId = courseSelect ? courseSelect.value : 'atmosphere';
+      loadNoteContent(courseId, noteSelect.value);
+    });
+  }
+
+  // 实时预览
+  textarea.addEventListener('input', () => {
+    if (previewPanel && previewPanel.style.display !== 'none') {
+      renderNotePreview(textarea.value);
+    }
+  });
+
+  // 自动保存（每30秒）
+  setInterval(() => {
+    if (textarea.value !== lastSavedContent && currentNoteId) {
+      const courseId = courseSelect ? courseSelect.value : 'atmosphere';
+      localStorage.setItem(getNoteContentKey(courseId, currentNoteId), textarea.value);
+      lastSavedContent = textarea.value;
+      if (statusEl) {
+        statusEl.textContent = '已自动保存 ' + new Date().toLocaleTimeString();
+      }
+    }
+  }, 30000);
+
+  // Ctrl+S 保存
+  textarea.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      saveCurrentNote();
+      const saveBtn = document.getElementById('saveNotes');
+      if (saveBtn) {
+        saveBtn.textContent = '✅ 已保存';
+        setTimeout(() => { saveBtn.textContent = '💾 保存'; }, 1500);
+      }
+    }
+  });
+
+  // Tab 切换
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const tabName = tab.dataset.tab;
+      if (tabName === 'edit') {
+        if (editorPanel) editorPanel.classList.remove('notes-editor-hidden');
+        if (previewPanel) previewPanel.classList.add('notes-preview-hidden');
+      } else {
+        renderNotePreview(textarea.value);
+        if (editorPanel) editorPanel.classList.add('notes-editor-hidden');
+        if (previewPanel) previewPanel.classList.remove('notes-preview-hidden');
+      }
+    });
+  });
+
+  // 保存按钮
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      saveCurrentNote();
+      saveBtn.textContent = '✅ 已保存';
+      setTimeout(() => { saveBtn.textContent = '💾 保存'; }, 1500);
+    });
+  }
+
+  // 离开页面时保存
+  window.addEventListener('beforeunload', () => {
+    if (textarea.value !== lastSavedContent && currentNoteId) {
+      const courseId = courseSelect ? courseSelect.value : 'atmosphere';
+      localStorage.setItem(getNoteContentKey(courseId, currentNoteId), textarea.value);
+    }
+  });
+}
+
 // ===== 背景图初始化（支持 per-page + IndexedDB）=====
 async function initGlobalBackground() {
   const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');

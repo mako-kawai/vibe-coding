@@ -3173,6 +3173,91 @@ ul {
   text-align: center;
 }
 
+/* ===== 多笔记功能 ===== */
+.notes-selector-row {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.notes-list-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.notes-list-selector label {
+  font-weight: 500;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.notes-btn-small {
+  padding: 5px 12px;
+  font-size: 0.85rem;
+}
+
+.notes-btn-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.notes-btn-link:hover {
+  background: var(--sakura-pink);
+  color: white;
+}
+
+/* ===== 标签颜色选择器 ===== */
+.tag-color-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tag-color-input-row input[type="color"] {
+  width: 50px;
+  height: 38px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.tag-color-input-row input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.tag-color-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.color-preset {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+  border-color: var(--text-dark);
+}
+
 /* ===== 上传文件列表 ===== */
 .uploaded-files-section {
   margin-top: 30px;
