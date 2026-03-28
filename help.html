@@ -233,8 +233,8 @@
             <h3>🖼️ 更换背景图</h3>
             <p>上传您自己的图片作为网站背景（樱花风格效果更佳）：</p>
             <div class="help-settings-row">
+              <label for="bgImageInput" class="course-btn-secondary help-cursor-pointer">📁 选择图片</label>
               <input type="file" id="bgImageInput" accept="image/*" class="help-file-hidden" onchange="handleBgImageUpload(event)" title="选择背景图片">
-              <button type="button" class="course-btn-secondary" onclick="document.getElementById('bgImageInput').click()">📁 选择图片</button>
               <button type="button" class="course-btn help-btn-left-margin" onclick="resetBgImage()">恢复默认</button>
             </div>
             <div id="bgPreview" class="help-settings-status"></div>
