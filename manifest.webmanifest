@@ -1,0 +1,17 @@
+{
+  "name": "mako's Learning",
+  "short_name": "学习记录",
+  "description": "个人学习记录网站",
+  "start_url": "/vibe-coding/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#FFB7C5",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "lang": "zh-CN"
+}

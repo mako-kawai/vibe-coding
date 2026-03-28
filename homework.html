@@ -277,7 +277,8 @@
         listContainer.innerHTML = `
           <div class="homework-empty">
             <span class="empty-icon">${getCourseById(currentHomeworkCourse)?.icon || '📚'}</span>
-            <p>暂无作业，点击下方按钮添加</p>
+            <p class="empty-title">暂无作业</p>
+            <p>点击下方「➕ 添加作业」按钮添加新作业</p>
           </div>
         `;
         return;

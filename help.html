@@ -204,6 +204,30 @@
             <div id="githubSaveStatus" style="margin-top: 8px;"></div>
           </div>
 
+          <!-- 外观设置 -->
+          <div class="help-card">
+            <h3>🎨 外观设置</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+              <button type="button" class="course-btn" onclick="toggleDarkMode()" id="darkModeBtn">🌙 深色模式</button>
+              <button type="button" class="course-btn-secondary" onclick="toggleSakura()" id="sakuraBtn">🌸 樱花动画</button>
+            </div>
+            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-light);">提示：樱花动画在低端设备上可能会造成卡顿，可以关闭以提升性能。</p>
+          </div>
+
+          <!-- 数据备份 -->
+          <div class="help-card">
+            <h3>💾 数据备份与恢复</h3>
+            <p>将您的所有数据导出为 JSON 文件进行备份，或从备份文件恢复数据：</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+              <button type="button" class="course-btn" onclick="exportAllData()">📤 导出数据</button>
+              <label class="course-btn-secondary" style="cursor: pointer;">
+                📥 导入数据
+                <input type="file" accept=".json" style="display: none;" onchange="importAllData(this.files[0])">
+              </label>
+            </div>
+            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-light);">注意：导入数据会覆盖现有数据，请谨慎操作。</p>
+          </div>
+
           <!-- 更换背景图 -->
           <div class="help-card">
             <h3>🖼️ 更换背景图</h3>
@@ -304,6 +328,7 @@
       loadGitHubRepoSetting();
       loadBgPreview();
       initBackground();
+      initSakuraSetting();
     });
   </script>
 </body>

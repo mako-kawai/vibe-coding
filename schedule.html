@@ -354,7 +354,7 @@
       });
 
       if (todos.length === 0) {
-        todoList.innerHTML = '<div class="todo-empty">暂无待办事项</div>';
+        todoList.innerHTML = '<div class="todo-empty"><span class="empty-icon">📋</span><p class="empty-title">暂无待办事项</p><p>在上方输入内容添加新的待办</p></div>';
         return;
       }
 
@@ -874,7 +874,69 @@
       // 初始化学期进度和本周概览
       updateSemesterProgress();
       renderWeekOverview();
+
+      // 浏览器通知初始化
+      initBrowserNotifications();
     });
+
+    // ===== 浏览器通知 =====
+    let notificationChecked = false;
+
+    function initBrowserNotifications() {
+      // 检查是否有即将到期的待办/作业
+      const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+
+      // 如果用户没有明确拒绝，且有即将到期的项目，提示开启通知
+      if (userSettings.notificationsEnabled !== false) {
+        checkUpcomingDeadlines();
+      }
+    }
+
+    function checkUpcomingDeadlines() {
+      const todos = JSON.parse(localStorage.getItem('user_todos') || '[]');
+      const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // 找出今天或明天到期的未完成任务
+      const upcoming = [...todos, ...homework].filter(item => {
+        if (item.completed || !item.dueDate) return false;
+        const due = new Date(item.dueDate);
+        due.setHours(0, 0, 0, 0);
+        return due.getTime() === today.getTime() || due.getTime() === tomorrow.getTime();
+      });
+
+      if (upcoming.length > 0 && Notification.permission === 'default') {
+        // 提示用户开启通知
+        if (confirm('您有即将到期的任务！是否开启浏览器通知以便及时提醒？')) {
+          requestNotificationPermission();
+        } else {
+          const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+          userSettings.notificationsEnabled = false;
+          localStorage.setItem('user_settings', JSON.stringify(userSettings));
+        }
+      }
+    }
+
+    function requestNotificationPermission() {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          showNotification('通知已开启！', '您将在任务即将到期时收到提醒。');
+          const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+          userSettings.notificationsEnabled = true;
+          localStorage.setItem('user_settings', JSON.stringify(userSettings));
+        }
+      });
+    }
+
+    function showNotification(title, body) {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '🌸' });
+      }
+    }
   </script>
 </body>
 </html>

@@ -1,9 +1,14 @@
 // ===== 樱花飘落效果 =====
+let sakuraEnabled = true;
+
 function createSakura() {
+  if (!sakuraEnabled) return;
   const container = document.getElementById('sakuraContainer');
+  if (!container) return;
   const sakuraChars = ['❀', '✿', '❁', '✾', '🏵'];
 
   setInterval(() => {
+    if (!sakuraEnabled) return;
     const sakura = document.createElement('div');
     sakura.classList.add('sakura');
     sakura.textContent = sakuraChars[Math.floor(Math.random() * sakuraChars.length)];
@@ -29,6 +34,240 @@ function createSakura() {
       sakura.remove();
     }, duration * 1000);
   }, 150);
+}
+
+// ===== Toast 通知系统 =====
+function showToast(message, type = 'info', duration = 3000) {
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// ===== 防抖函数 =====
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// ===== 深色模式 =====
+function initDarkMode() {
+  const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+  if (userSettings.darkMode) {
+    document.body.classList.add('dark-mode');
+  }
+}
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+  userSettings.darkMode = isDark;
+  localStorage.setItem('user_settings', JSON.stringify(userSettings));
+  showToast(isDark ? '深色模式已开启' : '深色模式已关闭', 'success');
+  // 更新按钮文字
+  updateDarkModeBtn(isDark);
+}
+
+function updateDarkModeBtn(isDark) {
+  const btn = document.getElementById('darkModeBtn');
+  if (btn) btn.textContent = isDark ? '☀️ 浅色模式' : '🌙 深色模式';
+}
+
+function toggleSakura() {
+  sakuraEnabled = !sakuraEnabled;
+  const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+  userSettings.sakuraEnabled = sakuraEnabled;
+  localStorage.setItem('user_settings', JSON.stringify(userSettings));
+  showToast(sakuraEnabled ? '樱花动画已开启' : '樱花动画已关闭', 'success');
+  updateSakuraBtn();
+}
+
+function updateSakuraBtn() {
+  const btn = document.getElementById('sakuraBtn');
+  if (btn) btn.textContent = sakuraEnabled ? '🌸 樱花动画' : '🚫 樱花动画';
+}
+
+function initSakuraSetting() {
+  const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+  if (userSettings.sakuraEnabled === false) {
+    sakuraEnabled = false;
+  }
+  updateSakuraBtn();
+  updateDarkModeBtn(userSettings.darkMode);
+}
+
+// ===== 全局搜索 =====
+function openSearchModal() {
+  document.getElementById('searchModal').style.display = 'flex';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchInput').focus();
+}
+
+function closeSearchModal() {
+  document.getElementById('searchModal').style.display = 'none';
+}
+
+function performSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const resultsContainer = document.getElementById('searchResults');
+
+  if (!query) {
+    resultsContainer.innerHTML = '';
+    return;
+  }
+
+  const results = [];
+  const courses = typeof getCoursesArray !== 'undefined' ? getCoursesArray() : [];
+
+  // 搜索笔记
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('course_notes_')) {
+      const content = localStorage.getItem(key);
+      if (content && content.toLowerCase().includes(query)) {
+        const courseId = key.replace('course_notes_', '');
+        const course = courses.find(c => c.id === courseId);
+        const lines = content.split('\n');
+        const matchedLine = lines.find(l => l.toLowerCase().includes(query)) || '';
+        results.push({
+          type: '笔记',
+          title: course ? `${course.icon} ${course.name}` : '未知课程',
+          meta: '课程笔记',
+          content: matchedLine.substring(0, 100)
+        });
+      }
+    }
+  }
+
+  // 搜索作业
+  const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
+  homework.forEach(hw => {
+    if (hw.title.toLowerCase().includes(query) || (hw.description && hw.description.toLowerCase().includes(query))) {
+      const course = courses.find(c => c.id === hw.courseId);
+      results.push({
+        type: '作业',
+        title: hw.title,
+        meta: course ? `${course.icon} ${course.name}` : '未知课程',
+        content: hw.description ? hw.description.substring(0, 80) : ''
+      });
+    }
+  });
+
+  // 搜索待办
+  const todos = JSON.parse(localStorage.getItem('user_todos') || '[]');
+  todos.forEach(todo => {
+    if (todo.text.toLowerCase().includes(query)) {
+      results.push({
+        type: '待办',
+        title: todo.text,
+        meta: todo.dueDate ? `截止: ${todo.dueDate}` : '无截止日期',
+        content: ''
+      });
+    }
+  });
+
+  // 渲染结果
+  if (results.length === 0) {
+    resultsContainer.innerHTML = '<div class="search-no-results">未找到相关内容</div>';
+    return;
+  }
+
+  resultsContainer.innerHTML = results.map(r => `
+    <div class="search-result-item">
+      <div class="search-result-title">${r.title}</div>
+      <div class="search-result-meta">${r.type} · ${r.meta}</div>
+      ${r.content ? `<div class="search-result-content">${r.content}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ===== 数据备份与导出 =====
+function exportAllData() {
+  const data = {
+    user_courses: localStorage.getItem('user_courses') || '[]',
+    default_courses_edited: localStorage.getItem('default_courses_edited') || '{}',
+    default_courses_deleted: localStorage.getItem('default_courses_deleted') || '[]',
+    user_todos: localStorage.getItem('user_todos') || '[]',
+    course_homework: localStorage.getItem('course_homework') || '[]',
+    course_table_items: localStorage.getItem('course_table_items') || '[]',
+    course_periods: localStorage.getItem('course_periods') || '[]',
+    semester_settings: localStorage.getItem('semester_settings') || '{}',
+    uploaded_files_meta: localStorage.getItem('uploaded_files_meta') || '[]',
+    user_settings: localStorage.getItem('user_settings') || '{}',
+    course_notes: {}
+  };
+
+  // 获取所有笔记
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('course_notes_')) {
+      data.course_notes[key] = localStorage.getItem(key);
+    }
+  }
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mako-learning-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据导出成功！', 'success');
+}
+
+function importAllData(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      // 恢复各项数据
+      const keys = [
+        'user_courses', 'default_courses_edited', 'default_courses_deleted',
+        'user_todos', 'course_homework', 'course_table_items',
+        'course_periods', 'semester_settings', 'uploaded_files_meta', 'user_settings'
+      ];
+
+      keys.forEach(key => {
+        if (data[key]) {
+          localStorage.setItem(key, data[key]);
+        }
+      });
+
+      // 恢复笔记
+      if (data.course_notes) {
+        Object.entries(data.course_notes).forEach(([key, value]) => {
+          localStorage.setItem(key, value);
+        });
+      }
+
+      showToast('数据导入成功！请刷新页面。', 'success');
+      setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+      showToast('导入失败：文件格式错误', 'error');
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ===== 淡入效果 =====
@@ -158,6 +397,38 @@ function initNotes() {
     }
   });
 
+  // 自动保存（每30秒）
+  let lastSavedContent = textarea.value;
+  const autoSaveInterval = setInterval(() => {
+    if (textarea.value !== lastSavedContent) {
+      const courseId = courseSelect ? courseSelect.value : 'atmosphere';
+      localStorage.setItem(getStorageKey(courseId), textarea.value);
+      lastSavedContent = textarea.value;
+      if (statusEl) {
+        statusEl.textContent = '已自动保存 ' + new Date().toLocaleTimeString();
+      }
+    }
+  }, 30000);
+
+  // 键盘快捷键 Ctrl+S 保存
+  textarea.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      const courseId = courseSelect ? courseSelect.value : 'atmosphere';
+      const content = textarea.value;
+      localStorage.setItem(getStorageKey(courseId), content);
+      lastSavedContent = content;
+      if (statusEl) {
+        statusEl.textContent = '已保存 ' + new Date().toLocaleTimeString();
+      }
+      if (saveBtn) {
+        saveBtn.textContent = '✅ 已保存';
+        setTimeout(() => { saveBtn.textContent = '💾 保存'; }, 1500);
+      }
+      showToast('笔记已保存', 'success');
+    }
+  });
+
   // Tab 切换
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -223,9 +494,28 @@ function initGlobalBackground() {
 
 // ===== 初始化 =====
 document.addEventListener('DOMContentLoaded', () => {
+  initDarkMode();
   createSakura();
   handleScrollAnimation();
   handleNavHighlight();
   initNotes();
   initGlobalBackground();
+});
+
+// 键盘快捷键 Ctrl+K 打开搜索
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearchModal();
+  }
+  if (e.key === 'Escape') {
+    closeSearchModal();
+  }
+});
+
+// 点击模态框外部关闭
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'searchModal') {
+    closeSearchModal();
+  }
 });
