@@ -139,7 +139,7 @@ const Modal = {
 // ===== IndexedDB 图片存储（解决 localStorage 5MB 限制）=====
 const ImageDB = {
   DB_NAME: 'mako_image_db',
-  DB_VERSION: 1,
+  DB_VERSION: 2,
   STORE_NAME: 'images',
   db: null,
 
@@ -167,8 +167,14 @@ const ImageDB = {
     });
   },
 
-  // 存储图片（返回 blob URL）
+  // 存储图片（使用 ArrayBuffer 避免浏览器兼容性问题）
   async storeImage(file) {
+    console.log('ImageDB: Storing image, size:', file.size, 'bytes');
+
+    // 将 File/Blob 转换为 ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    console.log('ImageDB: Converted to ArrayBuffer, size:', arrayBuffer.byteLength);
+
     const db = await this.open();
     const id = 'bg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
@@ -176,15 +182,25 @@ const ImageDB = {
       const transaction = db.transaction([this.STORE_NAME], 'readwrite');
       const store = transaction.objectStore(this.STORE_NAME);
 
-      // 存储 file 对象（浏览器会自动处理）
-      const request = store.put({ id, file, timestamp: Date.now() });
+      // 存储 ArrayBuffer 和 MIME 类型
+      const request = store.put({
+        id,
+        data: arrayBuffer,
+        mimeType: file.type,
+        timestamp: Date.now()
+      });
 
       request.onsuccess = () => {
+        console.log('ImageDB: Stored successfully, id:', id);
         // 使用 blob URL 供 immediate 使用
-        const blobUrl = URL.createObjectURL(file);
+        const blob = new Blob([arrayBuffer], { type: file.type });
+        const blobUrl = URL.createObjectURL(blob);
         resolve({ id, blobUrl });
       };
-      request.onerror = () => reject(request.error);
+      request.onerror = (e) => {
+        console.error('ImageDB: Store failed:', e);
+        reject(request.error);
+      };
     });
   },
 
@@ -200,7 +216,8 @@ const ImageDB = {
       request.onsuccess = () => {
         const record = request.result;
         if (record) {
-          resolve(URL.createObjectURL(record.file));
+          const blob = new Blob([record.data], { type: record.mimeType });
+          resolve(URL.createObjectURL(blob));
         } else {
           resolve(null);
         }
