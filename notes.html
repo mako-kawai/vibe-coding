@@ -191,6 +191,23 @@
             </form>
           </div>
         </div>
+
+        <!-- 文件标签管理模态框 -->
+        <div id="fileTagsModal" class="modal">
+          <div class="modal-content modal-content-sm">
+            <div class="modal-header">
+              <h3>🏷️ 管理文件标签</h3>
+              <button type="button" class="modal-close" onclick="closeFileTagsModal()">&times;</button>
+            </div>
+            <div class="modal-form">
+              <p id="fileTagsFileName" style="margin-bottom: 15px; color: var(--text-light);"></p>
+              <div id="fileTagsList" style="margin-bottom: 15px;"></div>
+              <div class="form-actions">
+                <button type="button" class="course-btn-secondary" onclick="closeFileTagsModal()">关闭</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -212,6 +229,7 @@
     const UPLOADED_FILES_KEY = 'uploaded_files_meta';
     let currentFolder = '';
     let movingFileId = null;
+    let selectedTags = []; // 当前选中的标签筛选
 
     // 加载文件夹列表
     function loadFileFolders() {
@@ -269,12 +287,44 @@
         return;
       }
 
-      container.innerHTML = tags.map(tag => `
-        <span class="tag-item" style="background-color: ${tag.color}20; border-color: ${tag.color};">
-          <span class="tag-name">${tag.name}</span>
-          <button type="button" class="tag-delete" onclick="deleteTag('${tag.id}')">×</button>
+      container.innerHTML = tags.map(tag => {
+        const isSelected = selectedTags.includes(tag.id);
+        return `
+        <span class="tag-item ${isSelected ? 'tag-selected' : ''}"
+              style="background-color: ${tag.color}20; border-color: ${tag.color};"
+              onclick="toggleTagFilter('${tag.id}')" title="点击筛选">
+          <span class="tag-name">${tag.name}${isSelected ? ' ✓' : ''}</span>
+          <button type="button" class="tag-delete" onclick="event.stopPropagation(); deleteTag('${tag.id}')">×</button>
         </span>
-      `).join('');
+      `}).join('');
+
+      // 如果有选中的标签，添加清除筛选按钮
+      if (selectedTags.length > 0) {
+        container.innerHTML += `
+          <span class="tag-clear-btn" onclick="clearTagFilters()" style="cursor: pointer; color: var(--text-light); font-size: 0.85rem;">
+            清除筛选
+          </span>
+        `;
+      }
+    }
+
+    // 切换标签筛选
+    function toggleTagFilter(tagId) {
+      const index = selectedTags.indexOf(tagId);
+      if (index === -1) {
+        selectedTags.push(tagId);
+      } else {
+        selectedTags.splice(index, 1);
+      }
+      renderTagsList();
+      renderUploadedFiles();
+    }
+
+    // 清除所有标签筛选
+    function clearTagFilters() {
+      selectedTags = [];
+      renderTagsList();
+      renderUploadedFiles();
     }
 
     // 打开添加标签模态框
@@ -311,6 +361,60 @@
       const filtered = tags.filter(t => t.id !== tagId);
       saveNotesTags(filtered);
       renderTagsList();
+    }
+
+    // 打开文件标签管理模态框
+    let currentFileForTags = null;
+    function openFileTagsModal(fileId) {
+      currentFileForTags = fileId;
+      const files = loadUploadedFilesMeta();
+      const file = files.find(f => f.id === fileId);
+      if (!file) return;
+
+      document.getElementById('fileTagsFileName').textContent = '文件：' + file.filename;
+
+      const tags = loadNotesTags();
+      const currentCourse = document.getElementById('courseSelect').value;
+      const courseTags = tags.filter(t => t.courseId === currentCourse);
+      const fileTagIds = file.tagIds || [];
+
+      const listEl = document.getElementById('fileTagsList');
+      if (courseTags.length === 0) {
+        listEl.innerHTML = '<p class="text-muted">当前课程暂无标签，请先添加标签</p>';
+      } else {
+        listEl.innerHTML = courseTags.map(t => `
+          <label class="tag-toggle-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer;">
+            <input type="checkbox" value="${t.id}" ${fileTagIds.includes(t.id) ? 'checked' : ''}
+                   onchange="toggleFileTag('${fileId}', '${t.id}')">
+            <span class="tag-toggle-name" style="background-color: ${t.color}20; border: 1px solid ${t.color}; padding: 2px 8px; border-radius: 4px;">${t.name}</span>
+          </label>
+        `).join('');
+      }
+
+      document.getElementById('fileTagsModal').style.display = 'flex';
+    }
+
+    function closeFileTagsModal() {
+      document.getElementById('fileTagsModal').style.display = 'none';
+      currentFileForTags = null;
+    }
+
+    function toggleFileTag(fileId, tagId) {
+      const files = loadUploadedFilesMeta();
+      const file = files.find(f => f.id === fileId);
+      if (!file) return;
+
+      if (!file.tagIds) file.tagIds = [];
+
+      const index = file.tagIds.indexOf(tagId);
+      if (index === -1) {
+        file.tagIds.push(tagId);
+      } else {
+        file.tagIds.splice(index, 1);
+      }
+
+      saveUploadedFilesMeta(files);
+      renderUploadedFiles();
     }
 
     // 按文件夹筛选
@@ -369,6 +473,14 @@
         courseFiles = courseFiles.filter(f => f.folderId === currentFolder);
       }
 
+      // 按标签筛选
+      if (selectedTags.length > 0) {
+        courseFiles = courseFiles.filter(f => {
+          const fileTagIds = f.tagIds || [];
+          return selectedTags.some(tagId => fileTagIds.includes(tagId));
+        });
+      }
+
       if (courseFiles.length === 0) {
         list.innerHTML = '<div class="uploaded-files-empty">暂无上传文件</div>';
         return;
@@ -378,6 +490,11 @@
         const folders = loadFileFolders();
         const folder = folders.find(fl => fl.id === f.folderId);
         const category = f.fileCategory || '课程课件';
+        const tags = loadNotesTags();
+        const fileTagIds = f.tagIds || [];
+        const fileTags = tags.filter(t => fileTagIds.includes(t.id));
+        const tagsHtml = fileTags.map(t => `<span class="file-tag" style="background-color: ${t.color}20; border-color: ${t.color};">${t.name}</span>`).join('');
+
         return `
         <div class="uploaded-file-item">
           <span class="file-icon">${getFileIcon(f.type)}</span>
@@ -385,9 +502,11 @@
             <span class="file-name">${f.filename}</span>
             ${folder ? `<span class="file-folder-tag">📁 ${folder.name}</span>` : ''}
             <span class="file-category-tag">📂 ${category}</span>
+            ${tagsHtml ? `<div class="file-tags">${tagsHtml}</div>` : ''}
           </div>
           <span class="file-date">${new Date(f.uploadDate).toLocaleDateString()}</span>
           <button type="button" class="file-action-btn" onclick="previewFile('${f.id}')">预览</button>
+          <button type="button" class="file-action-btn" onclick="openFileTagsModal('${f.id}')">🏷️</button>
           <button type="button" class="file-action-btn" onclick="openMoveFileModal('${f.id}')">移动</button>
           <button type="button" class="file-action-btn file-delete-btn" onclick="deleteUploadedFile('${f.id}')">删除</button>
         </div>
@@ -471,7 +590,8 @@
           fileCategory: categoryFolder,
           type: extension === 'pdf' ? 'pdf' : (extension === 'md' ? 'md' : 'txt'),
           uploadDate: new Date().toISOString(),
-          content: extension !== 'pdf' ? e.target.result : null
+          content: extension !== 'pdf' ? e.target.result : null,
+          tagIds: [] // 新增：文件关联的标签ID数组
         };
         filesMeta.push(fileMeta);
         saveUploadedFilesMeta(filesMeta);

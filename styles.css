@@ -1271,6 +1271,21 @@ ul {
   color: #ff6b6b;
 }
 
+.homework-tag-btn {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-light);
+  transition: all 0.2s ease;
+}
+
+.homework-tag-btn:hover {
+  background: rgba(255, 183, 197, 0.2);
+  color: var(--sakura-pink);
+}
+
 .homework-card.completed .homework-title {
   text-decoration: line-through;
   opacity: 0.6;
@@ -1959,6 +1974,37 @@ ul {
 
 .tag-delete:hover {
   color: #ff6b6b;
+}
+
+.tag-selected {
+  box-shadow: 0 0 0 2px var(--sakura-pink);
+}
+
+.tag-clear-btn {
+  margin-left: 10px;
+  text-decoration: underline;
+}
+
+.tag-clear-btn:hover {
+  color: var(--sakura-pink);
+}
+
+.file-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.file-tag {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  border: 1px solid;
+}
+
+.tag-toggle-item:hover {
+  background: rgba(255, 183, 197, 0.1);
 }
 
 .notes-tabs {

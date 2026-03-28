@@ -48,6 +48,11 @@
           <button type="button" class="filter-btn" data-status="completed" onclick="filterHomeworkByStatus('completed')">✅ 已完成</button>
         </div>
 
+        <!-- 作业标签筛选 -->
+        <div class="homework-tag-filters fade-in" id="homeworkTagFilters">
+          <button type="button" class="filter-btn" onclick="openHomeworkTagsModal()">🏷️ 按标签筛选</button>
+        </div>
+
         <!-- 作业统计 -->
         <div class="homework-stats fade-in" id="homeworkStats">
           <span id="homeworkCountText">共 0 项作业</span>
@@ -97,6 +102,41 @@
           <button type="submit" class="course-btn">添加</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- 作业标签筛选模态框 -->
+  <div id="homeworkTagModal" class="modal">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3>🏷️ 按标签筛选作业</h3>
+        <button type="button" class="modal-close" onclick="closeHomeworkTagsModal()">&times;</button>
+      </div>
+      <div class="modal-form">
+        <p style="margin-bottom: 15px; color: var(--text-light);">选择标签来筛选作业（可多选）</p>
+        <div id="homeworkTagList" style="margin-bottom: 15px;"></div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="course-btn-secondary" onclick="clearHomeworkTagFilters()">清除筛选</button>
+          <button type="button" class="course-btn" onclick="closeHomeworkTagsModal()">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 作业标签管理模态框 -->
+  <div id="homeworkManageTagsModal" class="modal">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3>🏷️ 管理作业标签</h3>
+        <button type="button" class="modal-close" onclick="closeHomeworkManageTagsModal()">&times;</button>
+      </div>
+      <div class="modal-form">
+        <p id="homeworkTagFileName" style="margin-bottom: 15px; color: var(--text-light);"></p>
+        <div id="homeworkTagsListForFile" style="margin-bottom: 15px;"></div>
+        <div class="form-actions">
+          <button type="button" class="course-btn-secondary" onclick="closeHomeworkManageTagsModal()">关闭</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -176,6 +216,7 @@
         description: description || '',
         dueDate: dueDate || null,
         completed: false,
+        tagIds: [],
         createdAt: new Date().toISOString()
       };
       homework.push(newHomework);
@@ -352,6 +393,199 @@
     function closeHomeworkModal() {
       document.getElementById('addHomeworkModal').style.display = 'none';
     }
+
+    // ===== 作业标签系统 =====
+    const HOMEWORK_TAGS_KEY = 'homework_tags';
+    let homeworkTagFilters = []; // 当前选中的标签筛选
+    let currentHomeworkForTags = null;
+
+    function loadHomeworkTags() {
+      return JSON.parse(localStorage.getItem(HOMEWORK_TAGS_KEY) || '[]');
+    }
+
+    function saveHomeworkTags(tags) {
+      localStorage.setItem(HOMEWORK_TAGS_KEY, JSON.stringify(tags));
+    }
+
+    function openHomeworkTagsModal() {
+      const tags = loadHomeworkTags();
+      const homework = loadHomework();
+      const currentCourseHomework = homework.filter(h => h.courseId === currentHomeworkCourse);
+      const usedTagIds = [...new Set(currentCourseHomework.flatMap(h => h.tagIds || []))];
+      const usedTags = tags.filter(t => usedTagIds.includes(t.id));
+
+      const listEl = document.getElementById('homeworkTagList');
+      if (usedTags.length === 0) {
+        listEl.innerHTML = '<p class="text-muted">当前课程作业暂无标签</p>';
+      } else {
+        listEl.innerHTML = usedTags.map(t => `
+          <label class="tag-toggle-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer;">
+            <input type="checkbox" value="${t.id}" ${homeworkTagFilters.includes(t.id) ? 'checked' : ''}
+                   onchange="toggleHomeworkTagFilter('${t.id}')">
+            <span style="background-color: ${t.color}20; border: 1px solid ${t.color}; padding: 2px 8px; border-radius: 4px;">${t.name}</span>
+          </label>
+        `).join('');
+      }
+
+      document.getElementById('homeworkTagModal').style.display = 'flex';
+    }
+
+    function closeHomeworkTagsModal() {
+      document.getElementById('homeworkTagModal').style.display = 'none';
+      renderHomework();
+    }
+
+    function toggleHomeworkTagFilter(tagId) {
+      const index = homeworkTagFilters.indexOf(tagId);
+      if (index === -1) {
+        homeworkTagFilters.push(tagId);
+      } else {
+        homeworkTagFilters.splice(index, 1);
+      }
+      renderHomework();
+    }
+
+    function clearHomeworkTagFilters() {
+      homeworkTagFilters = [];
+      renderHomework();
+      closeHomeworkTagsModal();
+    }
+
+    function openHomeworkManageTagsModal(homeworkId) {
+      currentHomeworkForTags = homeworkId;
+      const homework = loadHomework();
+      const hw = homework.find(h => h.id === homeworkId);
+      if (!hw) return;
+
+      document.getElementById('homeworkTagFileName').textContent = '作业：' + hw.title;
+
+      const tags = loadHomeworkTags();
+      const hwTagIds = hw.tagIds || [];
+
+      const listEl = document.getElementById('homeworkTagsListForFile');
+      if (tags.length === 0) {
+        listEl.innerHTML = '<p class="text-muted">暂无作业标签，请先在筛选中添加标签</p>';
+      } else {
+        listEl.innerHTML = tags.map(t => `
+          <label class="tag-toggle-item" style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer;">
+            <input type="checkbox" value="${t.id}" ${hwTagIds.includes(t.id) ? 'checked' : ''}
+                   onchange="toggleHomeworkFileTag('${homeworkId}', '${t.id}')">
+            <span style="background-color: ${t.color}20; border: 1px solid ${t.color}; padding: 2px 8px; border-radius: 4px;">${t.name}</span>
+          </label>
+        `).join('');
+      }
+
+      document.getElementById('homeworkManageTagsModal').style.display = 'flex';
+    }
+
+    function closeHomeworkManageTagsModal() {
+      document.getElementById('homeworkManageTagsModal').style.display = 'none';
+      currentHomeworkForTags = null;
+    }
+
+    function toggleHomeworkFileTag(homeworkId, tagId) {
+      const homework = loadHomework();
+      const hw = homework.find(h => h.id === homeworkId);
+      if (!hw) return;
+
+      if (!hw.tagIds) hw.tagIds = [];
+
+      const index = hw.tagIds.indexOf(tagId);
+      if (index === -1) {
+        hw.tagIds.push(tagId);
+      } else {
+        hw.tagIds.splice(index, 1);
+      }
+
+      saveHomework(homework);
+      renderHomework();
+    }
+
+    // 修改 renderHomework 函数以支持标签筛选
+    const originalRenderHomework = renderHomework;
+    renderHomework = function() {
+      const listContainer = document.getElementById('homeworkList');
+      const homework = loadHomework();
+      let courseHomework = homework.filter(h => h.courseId === currentHomeworkCourse);
+
+      // 按状态筛选
+      if (currentHomeworkStatus !== 'all') {
+        courseHomework = courseHomework.filter(hw => {
+          const status = getHomeworkStatus(hw);
+          return status === currentHomeworkStatus;
+        });
+      }
+
+      // 按标签筛选
+      if (homeworkTagFilters.length > 0) {
+        courseHomework = courseHomework.filter(hw => {
+          const hwTagIds = hw.tagIds || [];
+          return homeworkTagFilters.some(tagId => hwTagIds.includes(tagId));
+        });
+      }
+
+      // 更新统计
+      const allCourseHomework = homework.filter(h => h.courseId === currentHomeworkCourse);
+      const pendingCount = allCourseHomework.filter(hw => !hw.completed).length;
+      const completedCount = allCourseHomework.filter(hw => hw.completed).length;
+      document.getElementById('homeworkCountText').textContent =
+        `共 ${allCourseHomework.length} 项作业（${pendingCount} 待完成，${completedCount} 已完成）`;
+
+      if (courseHomework.length === 0) {
+        listContainer.innerHTML = `
+          <div class="homework-empty">
+            <span class="empty-icon">${getCourseById(currentHomeworkCourse)?.icon || '📚'}</span>
+            <p class="empty-title">暂无作业</p>
+            <p>点击下方「➕ 添加作业」按钮添加新作业</p>
+          </div>
+        `;
+        return;
+      }
+
+      // 按完成状态和截止日期排序
+      courseHomework.sort((a, b) => {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+        if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+        return 0;
+      });
+
+      listContainer.innerHTML = courseHomework.map(hw => {
+        const hwStatus = getHomeworkStatus(hw);
+        const statusClass = hwStatus;
+        const statusText = hw.completed ? '✓ 已完成' :
+                         hwStatus === 'overdue' ? '⚠️ 已过期' :
+                         hwStatus === 'today' ? '📅 今天截止' :
+                         hwStatus === 'upcoming' ? '⏰ 即将截止' : '📋 待完成';
+        const countdown = getDueCountdown(hw.dueDate);
+
+        const tags = loadHomeworkTags();
+        const hwTagIds = hw.tagIds || [];
+        const hwTags = tags.filter(t => hwTagIds.includes(t.id));
+        const tagsHtml = hwTags.map(t => `<span style="background-color: ${t.color}20; border: 1px solid ${t.color}; padding: 1px 6px; border-radius: 10px; font-size: 0.75rem;">${t.name}</span>`).join('');
+
+        return `
+          <div class="homework-card ${hw.completed ? 'completed' : ''}">
+            <div class="homework-header">
+              <label class="homework-checkbox">
+                <input type="checkbox" ${hw.completed ? 'checked' : ''}
+                       onchange="handleToggleHomework('${hw.id}')">
+                <span class="checkmark"></span>
+              </label>
+              <span class="homework-status ${statusClass}">${statusText}</span>
+              ${hw.dueDate ? `<span class="homework-date">${hw.dueDate}</span>` : ''}
+            </div>
+            <h3 class="homework-title">${hw.title}</h3>
+            ${hw.description ? `<p class="homework-desc">${hw.description}</p>` : ''}
+            ${tagsHtml ? `<div style="margin-top: 8px;">${tagsHtml}</div>` : ''}
+            ${countdown ? `<div class="homework-countdown">${countdown}</div>` : ''}
+            <div class="homework-actions">
+              <button type="button" class="homework-tag-btn" onclick="openHomeworkManageTagsModal('${hw.id}')">🏷️</button>
+              <button type="button" class="homework-delete-btn" onclick="handleDeleteHomework('${hw.id}')">🗑️ 删除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
 
     // 初始化作业页面
     document.addEventListener('DOMContentLoaded', function() {
