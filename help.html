@@ -255,6 +255,13 @@
   <script src="utils.js" defer></script>
   <script src="script.js"></script>
   <script>
+    // 获取当前页面标识
+    function getCurrentPageId() {
+      const path = window.location.pathname;
+      const filename = path.split('/').pop() || 'index.html';
+      return filename.replace('.html', '');
+    }
+
     // 加载已保存的 GitHub 仓库设置
     function loadGitHubRepoSetting() {
       const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
@@ -275,10 +282,28 @@
       setTimeout(() => { status.textContent = ''; }, 3000);
     }
 
-    // 加载背景图预览
-    function loadBgPreview() {
+    // 加载背景图预览（支持 per-page）
+    async function loadBgPreview() {
       const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
       const preview = document.getElementById('bgPreview');
+      const pageId = getCurrentPageId();
+      const bgImages = userSettings.bgImages || {};
+
+      // 获取当前页面的图片 ID
+      const imageId = bgImages[pageId];
+      if (imageId) {
+        try {
+          const blobUrl = await ImageDB.getImageUrl(imageId);
+          if (blobUrl) {
+            preview.innerHTML = `<img src="${blobUrl}" class="help-preview-img">`;
+            return;
+          }
+        } catch (e) {
+          console.warn('Failed to load bg image preview:', e);
+        }
+      }
+
+      // 回退到旧的全局 bgImage
       if (userSettings.bgImage) {
         preview.innerHTML = `<img src="${userSettings.bgImage}" class="help-preview-img">`;
       } else {
@@ -286,40 +311,86 @@
       }
     }
 
-    // 处理背景图上传
-    function handleBgImageUpload(event) {
+    // 处理背景图上传（使用 IndexedDB 存储大图片）
+    async function handleBgImageUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
+      // 检查文件大小，显示警告（超过 5MB）
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('图片较大，上传中请稍候...', 'info');
+      }
+
+      try {
+        // 存储到 IndexedDB
+        const { id, blobUrl } = await ImageDB.storeImage(file);
+
         const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
-        userSettings.bgImage = e.target.result;
+        const pageId = getCurrentPageId();
+
+        // 保存为 per-page 背景
+        if (!userSettings.bgImages) userSettings.bgImages = {};
+        userSettings.bgImages[pageId] = id;
+
+        // 清除旧的全局 bgImage（迁移旧数据）
+        delete userSettings.bgImage;
+
         localStorage.setItem('user_settings', JSON.stringify(userSettings));
 
         // 更新背景
-        document.body.style.backgroundImage = `url('${e.target.result}')`;
+        document.body.style.backgroundImage = `url('${blobUrl}')`;
 
         // 更新预览
-        loadBgPreview();
-        alert('背景图已更新！');
-      };
-      reader.readAsDataURL(file);
+        await loadBgPreview();
+        showToast('背景图已更新！', 'success');
+      } catch (e) {
+        console.error('Failed to upload background image:', e);
+        showToast('上传失败，请重试', 'error');
+      }
     }
 
-    // 恢复默认背景
-    function resetBgImage() {
+    // 恢复默认背景（清除当前页面背景）
+    async function resetBgImage() {
       const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
-      delete userSettings.bgImage;
+      const pageId = getCurrentPageId();
+
+      // 删除当前页面的背景
+      if (userSettings.bgImages && userSettings.bgImages[pageId]) {
+        const imageId = userSettings.bgImages[pageId];
+        try {
+          await ImageDB.deleteImage(imageId);
+        } catch (e) {}
+        delete userSettings.bgImages[pageId];
+      }
+
       localStorage.setItem('user_settings', JSON.stringify(userSettings));
+
+      // 恢复默认背景
       document.body.style.backgroundImage = `url('https://minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com/ccv2%2F2026-03-27%2FMiniMax-M2.7%2F2037129075998335940%2F488f455ad32b685db8b9bcf4ea36422b11855af4589159b053cc45654388afa8..png?Expires=1774684676&OSSAccessKeyId=LTAI5tGLnRTkBjLuYPjNcKQ8&Signature=gM%2FyZGVJml5pudh5bgWc%2BcHPnF4%3D')`;
       document.getElementById('bgPreview').innerHTML = '';
-      alert('已恢复默认背景！');
+      showToast('已恢复默认背景！', 'success');
     }
 
-    // 初始化背景（检查是否有自定义背景）
-    function initBackground() {
+    // 初始化背景（检查是否有自定义背景，支持 per-page）
+    async function initBackground() {
       const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+      const pageId = getCurrentPageId();
+      const bgImages = userSettings.bgImages || {};
+
+      // 优先使用 per-page 背景
+      if (bgImages[pageId]) {
+        try {
+          const blobUrl = await ImageDB.getImageUrl(bgImages[pageId]);
+          if (blobUrl) {
+            document.body.style.backgroundImage = `url('${blobUrl}')`;
+            return;
+          }
+        } catch (e) {
+          console.warn('Failed to load background:', e);
+        }
+      }
+
+      // 回退到旧的全局 bgImage
       if (userSettings.bgImage) {
         document.body.style.backgroundImage = `url('${userSettings.bgImage}')`;
       }

@@ -136,6 +136,108 @@ const Modal = {
   }
 };
 
+// ===== IndexedDB 图片存储（解决 localStorage 5MB 限制）=====
+const ImageDB = {
+  DB_NAME: 'mako_image_db',
+  DB_VERSION: 1,
+  STORE_NAME: 'images',
+  db: null,
+
+  // 打开数据库
+  open() {
+    return new Promise((resolve, reject) => {
+      if (this.db) {
+        resolve(this.db);
+        return;
+      }
+      const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        this.db = request.result;
+        resolve(this.db);
+      };
+
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+        }
+      };
+    });
+  },
+
+  // 存储图片（返回 blob URL）
+  async storeImage(file) {
+    const db = await this.open();
+    const id = 'bg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(this.STORE_NAME);
+
+      // 存储 file 对象（浏览器会自动处理）
+      const request = store.put({ id, file, timestamp: Date.now() });
+
+      request.onsuccess = () => {
+        // 使用 blob URL 供 immediate 使用
+        const blobUrl = URL.createObjectURL(file);
+        resolve({ id, blobUrl });
+      };
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  // 获取图片 blob URL
+  async getImageUrl(id) {
+    const db = await this.open();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readonly');
+      const store = transaction.objectStore(this.STORE_NAME);
+      const request = store.get(id);
+
+      request.onsuccess = () => {
+        const record = request.result;
+        if (record) {
+          resolve(URL.createObjectURL(record.file));
+        } else {
+          resolve(null);
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  // 删除图片
+  async deleteImage(id) {
+    const db = await this.open();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(this.STORE_NAME);
+      const request = store.delete(id);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  // 列出所有图片
+  async listImages() {
+    const db = await this.open();
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.STORE_NAME], 'readonly');
+      const store = transaction.objectStore(this.STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+};
+
 // ===== 用户设置管理 =====
 const UserSettings = {
   KEY: 'user_settings',

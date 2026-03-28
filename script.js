@@ -484,9 +484,29 @@ function initNotes() {
   });
 }
 
-// ===== 背景图初始化（支持自定义背景）=====
-function initGlobalBackground() {
+// ===== 背景图初始化（支持 per-page + IndexedDB）=====
+async function initGlobalBackground() {
   const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+  const bgImages = userSettings.bgImages || {};
+
+  // 获取当前页面标识
+  const path = window.location.pathname;
+  const pageId = path.split('/').pop()?.replace('.html', '') || 'index';
+
+  // 优先使用 per-page 背景
+  if (bgImages[pageId]) {
+    try {
+      const blobUrl = await ImageDB.getImageUrl(bgImages[pageId]);
+      if (blobUrl) {
+        document.body.style.backgroundImage = `url('${blobUrl}')`;
+        return;
+      }
+    } catch (e) {
+      console.warn('Failed to load page background:', e);
+    }
+  }
+
+  // 回退到旧的全局 bgImage（兼容性）
   if (userSettings.bgImage) {
     document.body.style.backgroundImage = `url('${userSettings.bgImage}')`;
   }
