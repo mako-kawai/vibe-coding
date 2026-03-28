@@ -212,9 +212,6 @@ function renderCourseCards(containerId) {
     const metaText = course.teacher ? `${course.teacher} · ${course.credit}学分` :
                      (course.category ? `${course.category} · ${course.credit}学分` : `${course.credit}学分`);
 
-    const moduleLink = course.id === 'atmosphere' ? 'modules/module1.html' : `notes.html?course=${course.id}`;
-    const btnText = course.id === 'atmosphere' ? '开始学习' : '查看详情';
-
     return `
       <div class="course-card-main fade-in" data-course-id="${course.id}">
         <button type="button" class="course-edit-btn" onclick="openEditCourseModal('${course.id}')">✏️</button>
@@ -229,7 +226,6 @@ function renderCourseCards(containerId) {
         <p class="course-desc">${course.description}</p>
         ${progressHtml}
         <div class="course-actions">
-          ${course.id === 'atmosphere' ? `<a href="${moduleLink}" class="course-btn">${btnText}</a>` : ''}
           <button type="button" class="course-btn-secondary" onclick="openCourseDetailModal('${course.id}')">查看详情</button>
           <button type="button" class="course-btn-delete" onclick="handleDeleteCourse('${course.id}')">🗑️ 删除</button>
         </div>
