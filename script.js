@@ -28,7 +28,7 @@ function createSakura() {
     setTimeout(() => {
       sakura.remove();
     }, duration * 1000);
-  }, 400);
+  }, 150);
 }
 
 // ===== 淡入效果 =====

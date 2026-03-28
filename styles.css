@@ -27,7 +27,7 @@ html {
 }
 
 body {
-  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Microsoft YaHei', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
   background-image: url('https://minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com/ccv2%2F2026-03-27%2FMiniMax-M2.7%2F2037129075998335940%2F488f455ad32b685db8b9bcf4ea36422b11855af4589159b053cc45654388afa8..png?Expires=1774684676&OSSAccessKeyId=LTAI5tGLnRTkBjLuYPjNcKQ8&Signature=gM%2FyZGVJml5pudh5bgWc%2BcHPnF4%3D');
   background-size: cover;
   background-position: center;
@@ -1915,7 +1915,7 @@ ul {
   padding: 25px;
   border: none;
   outline: none;
-  font-family: 'Noto Sans JP', monospace;
+  font-family: 'Microsoft YaHei', 'Noto Sans JP', monospace;
   font-size: 0.95rem;
   line-height: 1.8;
   resize: vertical;
