@@ -376,6 +376,18 @@ function initNotes() {
   function renderPreview(content) {
     if (typeof marked !== 'undefined' && markdownBody) {
       markdownBody.innerHTML = marked.parse(content);
+      // 渲染 LaTeX 公式
+      if (typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(markdownBody, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false}
+          ],
+          throwOnError: false
+        });
+      }
     }
   }
 
