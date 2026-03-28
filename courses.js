@@ -63,7 +63,7 @@ const DEFAULT_COURSES = {
 const USER_COURSES_KEY = 'user_courses';
 
 /**
- * 获取所有课程（默认 + 用户添加 + 编辑过的默认课程）
+ * 获取所有课程（默认 + 用户添加 + 编辑过的默认课程 - 已删除的默认课程）
  */
 function getAllCourses() {
   const userCourses = JSON.parse(localStorage.getItem(USER_COURSES_KEY) || '[]');
@@ -79,6 +79,12 @@ function getAllCourses() {
     if (allDefaults[id]) {
       allDefaults[id] = { ...allDefaults[id], ...editedDefaults[id] };
     }
+  });
+
+  // 过滤掉已删除的默认课程
+  const deletedDefaults = getDeletedDefaultCourses();
+  deletedDefaults.forEach(id => {
+    delete allDefaults[id];
   });
 
   return { ...allDefaults, ...userCourseMap };
@@ -136,6 +142,39 @@ function deleteUserCourse(courseId) {
 }
 
 /**
+ * 获取已删除的默认课程ID列表
+ */
+function getDeletedDefaultCourses() {
+  return JSON.parse(localStorage.getItem('default_courses_deleted') || '[]');
+}
+
+/**
+ * 删除默认课程（标记为已删除）
+ */
+function deleteDefaultCourse(courseId) {
+  const deleted = getDeletedDefaultCourses();
+  if (!deleted.includes(courseId)) {
+    deleted.push(courseId);
+    localStorage.setItem('default_courses_deleted', JSON.stringify(deleted));
+  }
+}
+
+/**
+ * 综合删除课程（用户添加或默认课程）
+ */
+function deleteCourse(courseId) {
+  const course = getCourseById(courseId);
+  if (!course) return false;
+
+  if (course.isUserAdded) {
+    deleteUserCourse(courseId);
+  } else {
+    deleteDefaultCourse(courseId);
+  }
+  return true;
+}
+
+/**
  * 更新用户课程
  */
 function updateUserCourse(courseId, updates) {
@@ -174,7 +213,7 @@ function renderCourseCards(containerId) {
                      (course.category ? `${course.category} · ${course.credit}学分` : `${course.credit}学分`);
 
     const moduleLink = course.id === 'atmosphere' ? 'modules/module1.html' : `notes.html?course=${course.id}`;
-    const btnText = course.id === 'atmosphere' ? '开始学习' : '查看笔记';
+    const btnText = course.id === 'atmosphere' ? '开始学习' : '查看详情';
 
     return `
       <div class="course-card-main fade-in" data-course-id="${course.id}">
@@ -191,9 +230,8 @@ function renderCourseCards(containerId) {
         ${progressHtml}
         <div class="course-actions">
           ${course.id === 'atmosphere' ? `<a href="${moduleLink}" class="course-btn">${btnText}</a>` : ''}
-          <a href="notes.html?course=${course.id}" class="course-btn-secondary">查看笔记</a>
-          ${course.hasPdf ? `<a href="pdf/${course.id}.html" class="course-btn-pdf">📄 PDF</a>` : ''}
-          ${course.isUserAdded ? `<button type="button" class="course-btn-delete" onclick="handleDeleteCourse('${course.id}')">删除</button>` : ''}
+          <button type="button" class="course-btn-secondary" onclick="openCourseDetailModal('${course.id}')">查看详情</button>
+          <button type="button" class="course-btn-delete" onclick="handleDeleteCourse('${course.id}')">🗑️ 删除</button>
         </div>
       </div>
     `;
@@ -211,10 +249,9 @@ function renderCourseCards(containerId) {
  * 处理删除课程
  */
 function handleDeleteCourse(courseId) {
-  if (confirm('确定要删除这门课程吗？')) {
-    deleteUserCourse(courseId);
-    renderCourseCards('coursesGrid');
-  }
+  if (!confirm('确定要删除这门课程吗？此操作不可恢复。')) return;
+  deleteCourse(courseId);
+  renderCourseCards('coursesGrid');
 }
 
 /**
@@ -278,19 +315,221 @@ function closeEditCourseModal() {
  */
 function handleDeleteCourseFromEdit() {
   const courseId = document.getElementById('editCourseId').value;
+  if (!confirm('确定要删除这门课程吗？此操作不可恢复。')) return;
+  deleteCourse(courseId);
+  renderCourseCards('coursesGrid');
+  closeEditCourseModal();
+}
+
+/**
+ * 打开课程详情模态框
+ */
+let currentDetailCourseId = null;
+
+function openCourseDetailModal(courseId) {
+  currentDetailCourseId = courseId;
   const course = getCourseById(courseId);
   if (!course) return;
 
-  if (!course.isUserAdded) {
-    alert('默认课程不能删除');
+  document.getElementById('detailCourseTitle').textContent = course.icon + ' ' + course.name;
+
+  // 加载课程简介
+  const introText = course.description || '暂无简介';
+  document.getElementById('detailIntroText').textContent = introText;
+  document.getElementById('detailIntroInput').value = course.description || '';
+
+  // 加载笔记
+  const notesKey = 'course_notes_' + courseId;
+  const notes = localStorage.getItem(notesKey) || '';
+  document.getElementById('detailNotesTextarea').value = notes;
+
+  // 设置 GitHub 文件夹路径
+  const folderPath = `https://github.com/mako-kawai/vibe-coding/tree/main/${courseId}`;
+  document.getElementById('githubFolderPath').innerHTML = `<a href="${folderPath}" target="_blank">${folderPath}</a>`;
+
+  // 渲染文件列表
+  renderDetailFiles(courseId);
+
+  // 渲染作业列表
+  renderDetailHomework(courseId);
+
+  // 重置 tab
+  switchDetailTab('notes');
+
+  document.getElementById('courseDetailModal').style.display = 'flex';
+}
+
+function closeCourseDetailModal() {
+  document.getElementById('courseDetailModal').style.display = 'none';
+  currentDetailCourseId = null;
+}
+
+function toggleCourseIntroEdit() {
+  const viewEl = document.getElementById('detailIntroView');
+  const editEl = document.getElementById('detailIntroEdit');
+  viewEl.style.display = viewEl.style.display === 'none' ? 'block' : 'none';
+  editEl.style.display = editEl.style.display === 'none' ? 'block' : 'none';
+}
+
+function cancelCourseIntroEdit() {
+  const course = getCourseById(currentDetailCourseId);
+  if (course) {
+    document.getElementById('detailIntroInput').value = course.description || '';
+  }
+  document.getElementById('detailIntroView').style.display = 'block';
+  document.getElementById('detailIntroEdit').style.display = 'none';
+}
+
+function saveCourseIntro() {
+  if (!currentDetailCourseId) return;
+  const intro = document.getElementById('detailIntroInput').value;
+  const course = getCourseById(currentDetailCourseId);
+
+  if (course.isUserAdded) {
+    updateUserCourse(currentDetailCourseId, { description: intro });
+  } else {
+    updateDefaultCourse(currentDetailCourseId, { description: intro });
+  }
+
+  document.getElementById('detailIntroText').textContent = intro || '暂无简介';
+  document.getElementById('detailIntroView').style.display = 'block';
+  document.getElementById('detailIntroEdit').style.display = 'none';
+  renderCourseCards('coursesGrid');
+}
+
+function switchDetailTab(tabName) {
+  document.querySelectorAll('.detail-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === tabName);
+  });
+  document.getElementById('detailNotesPanel').style.display = tabName === 'notes' ? 'block' : 'none';
+  document.getElementById('detailFilesPanel').style.display = tabName === 'files' ? 'block' : 'none';
+}
+
+function saveDetailNotes() {
+  if (!currentDetailCourseId) return;
+  const notes = document.getElementById('detailNotesTextarea').value;
+  const notesKey = 'course_notes_' + currentDetailCourseId;
+  localStorage.setItem(notesKey, notes);
+  alert('笔记已保存！');
+}
+
+function renderDetailFiles(courseId) {
+  const container = document.getElementById('detailFilesList');
+  const filesMeta = JSON.parse(localStorage.getItem('uploaded_files_meta') || '[]');
+  const courseFiles = filesMeta.filter(f => f.courseId === courseId);
+
+  if (courseFiles.length === 0) {
+    container.innerHTML = '<div class="detail-files-empty">暂无上传文件</div>';
     return;
   }
 
-  if (!confirm('确定要删除这门课程吗？此操作不可恢复。')) return;
+  container.innerHTML = courseFiles.map(f => `
+    <div class="detail-file-item">
+      <span class="file-icon">${f.type === 'pdf' ? '📕' : '📄'}</span>
+      <span class="file-name">${f.filename}</span>
+      <button type="button" class="file-action-btn file-delete-btn" onclick="deleteDetailFile('${f.id}')">删除</button>
+    </div>
+  `).join('');
+}
 
-  deleteUserCourse(courseId);
-  renderCourseCards('coursesGrid');
-  closeEditCourseModal();
+function deleteDetailFile(fileId) {
+  if (!confirm('确定要删除这个文件吗？')) return;
+  const filesMeta = JSON.parse(localStorage.getItem('uploaded_files_meta') || '[]');
+  const filtered = filesMeta.filter(f => f.id !== fileId);
+  localStorage.setItem('uploaded_files_meta', JSON.stringify(filtered));
+  renderDetailFiles(currentDetailCourseId);
+}
+
+function renderDetailHomework(courseId) {
+  const container = document.getElementById('detailHomeworkList');
+  const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
+  const courseHomework = homework.filter(h => h.courseId === courseId);
+
+  if (courseHomework.length === 0) {
+    container.innerHTML = '<div class="detail-homework-empty">暂无作业</div>';
+    return;
+  }
+
+  courseHomework.sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+    return 0;
+  });
+
+  container.innerHTML = courseHomework.map(hw => {
+    const statusClass = hw.completed ? 'completed' : '';
+    const statusText = hw.completed ? '✓ 已完成' : '○ 待完成';
+    return `
+      <div class="detail-homework-item ${statusClass}">
+        <label class="detail-hw-checkbox">
+          <input type="checkbox" ${hw.completed ? 'checked' : ''}
+                 onchange="toggleDetailHomework('${hw.id}')">
+          <span class="checkmark"></span>
+        </label>
+        <div class="detail-hw-content">
+          <span class="detail-hw-title">${hw.title}</span>
+          ${hw.dueDate ? `<span class="detail-hw-date">截止：${hw.dueDate}</span>` : ''}
+        </div>
+        <button type="button" class="detail-hw-delete" onclick="deleteDetailHomework('${hw.id}')">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleDetailHomework(homeworkId) {
+  const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
+  const item = homework.find(h => h.id === homeworkId);
+  if (item) {
+    item.completed = !item.completed;
+    localStorage.setItem('course_homework', JSON.stringify(homework));
+    renderDetailHomework(currentDetailCourseId);
+  }
+}
+
+function deleteDetailHomework(homeworkId) {
+  if (!confirm('确定要删除这个作业吗？')) return;
+  const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
+  const filtered = homework.filter(h => h.id !== homeworkId);
+  localStorage.setItem('course_homework', JSON.stringify(filtered));
+  renderDetailHomework(currentDetailCourseId);
+}
+
+function openDetailAddHomework() {
+  if (!currentDetailCourseId) return;
+  document.getElementById('detailHomeworkCourseId').value = currentDetailCourseId;
+  document.getElementById('detailHomeworkTitle').value = '';
+  document.getElementById('detailHomeworkDesc').value = '';
+  document.getElementById('detailHomeworkDueDate').value = '';
+  document.getElementById('detailAddHomeworkModal').style.display = 'flex';
+}
+
+function closeDetailAddHomeworkModal() {
+  document.getElementById('detailAddHomeworkModal').style.display = 'none';
+}
+
+function handleDetailAddHomework(e) {
+  e.preventDefault();
+  const courseId = document.getElementById('detailHomeworkCourseId').value;
+  const title = document.getElementById('detailHomeworkTitle').value;
+  const desc = document.getElementById('detailHomeworkDesc').value;
+  const dueDate = document.getElementById('detailHomeworkDueDate').value;
+
+  if (!title) return;
+
+  const homework = JSON.parse(localStorage.getItem('course_homework') || '[]');
+  homework.push({
+    id: 'hw_' + Date.now(),
+    title,
+    courseId,
+    description: desc,
+    dueDate: dueDate || null,
+    completed: false,
+    createdAt: new Date().toISOString()
+  });
+  localStorage.setItem('course_homework', JSON.stringify(homework));
+
+  closeDetailAddHomeworkModal();
+  renderDetailHomework(courseId);
 }
 
 /**

@@ -399,12 +399,14 @@
       list.innerHTML = courseFiles.map(f => {
         const folders = loadFileFolders();
         const folder = folders.find(fl => fl.id === f.folderId);
+        const category = f.fileCategory || '课程课件';
         return `
         <div class="uploaded-file-item">
           <span class="file-icon">${getFileIcon(f.type)}</span>
           <div class="file-info">
             <span class="file-name">${f.filename}</span>
             ${folder ? `<span class="file-folder-tag">📁 ${folder.name}</span>` : ''}
+            <span class="file-category-tag">📂 ${category}</span>
           </div>
           <span class="file-date">${new Date(f.uploadDate).toLocaleDateString()}</span>
           <button type="button" class="file-action-btn" onclick="previewFile('${f.id}')">预览</button>
@@ -472,6 +474,14 @@
       const courseId = document.getElementById('courseSelect').value;
       const extension = file.name.split('.').pop().toLowerCase();
 
+      // 让用户选择文件类别
+      const fileCategory = prompt('请选择文件类别：\n1 - 课程笔记\n2 - 课程课件\n3 - 课程作业文件\n\n输入数字或直接回车默认选择"课程课件"：', '2');
+      if (fileCategory === null) return; // 用户取消
+
+      const categoryMap = { '1': '课程笔记', '2': '课程课件', '3': '课程作业文件' };
+      const categoryFolder = categoryMap[fileCategory] || '课程课件';
+      const githubPath = `https://github.com/mako-kawai/vibe-coding/tree/main/${courseId}/${categoryFolder}`;
+
       const reader = new FileReader();
       reader.onload = function(e) {
         const filesMeta = loadUploadedFilesMeta();
@@ -480,6 +490,7 @@
           filename: file.name,
           courseId,
           folderId: currentFolder,
+          fileCategory: categoryFolder,
           type: extension === 'pdf' ? 'pdf' : (extension === 'md' ? 'md' : 'txt'),
           uploadDate: new Date().toISOString(),
           content: extension !== 'pdf' ? e.target.result : null
@@ -495,7 +506,7 @@
         }
 
         renderUploadedFiles();
-        alert('文件上传成功！');
+        alert(`文件上传成功！\n\n请将文件上传到 GitHub 对应文件夹：\n${githubPath}`);
       };
 
       if (extension === 'pdf') {
@@ -506,14 +517,14 @@
           filename: file.name,
           courseId,
           folderId: currentFolder,
+          fileCategory: categoryFolder,
           type: 'pdf',
           uploadDate: new Date().toISOString()
         };
         filesMeta.push(fileMeta);
         saveUploadedFilesMeta(filesMeta);
         renderUploadedFiles();
-        const githubLink = 'https://github.com/mako-kawai/vibe-coding/tree/main/pdf';
-        alert('PDF 上传成功！\n\n如需在线预览，请将 PDF 文件上传到 GitHub 的 pdf/ 目录：\n' + githubLink + '\n\n上传后刷新页面即可预览。');
+        alert(`PDF 上传成功！\n\n请将文件上传到 GitHub 对应文件夹：\n${githubPath}`);
       } else {
         reader.readAsText(file);
       }
@@ -528,8 +539,9 @@
       if (!file) return;
 
       if (file.type === 'pdf') {
-        // 尝试从 pdf/ 目录加载 PDF
-        const pdfUrl = 'pdf/' + file.filename;
+        // 从课程文件夹加载 PDF
+        const categoryFolder = file.fileCategory || '课程课件';
+        const pdfUrl = `${file.courseId}/${categoryFolder}/${file.filename}`;
         window.open(pdfUrl, '_blank');
         return;
       }

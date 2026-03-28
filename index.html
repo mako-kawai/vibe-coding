@@ -205,6 +205,97 @@
     </div>
   </div>
 
+  <!-- 课程详情模态框 -->
+  <div id="courseDetailModal" class="modal">
+    <div class="modal-content modal-content-lg">
+      <div class="modal-header">
+        <h3 id="detailCourseTitle">课程详情</h3>
+        <button type="button" class="modal-close" onclick="closeCourseDetailModal()">&times;</button>
+      </div>
+      <div class="course-detail-content">
+        <!-- 课程简介 -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <h4>📖 课程简介</h4>
+            <button type="button" class="detail-edit-btn" onclick="toggleCourseIntroEdit()">✏️ 编辑</button>
+          </div>
+          <div id="detailIntroView" class="detail-intro-view">
+            <p id="detailIntroText">暂无简介</p>
+          </div>
+          <div id="detailIntroEdit" class="detail-intro-edit" style="display: none;">
+            <textarea id="detailIntroInput" rows="4" placeholder="输入课程简介..."></textarea>
+            <div class="detail-edit-actions">
+              <button type="button" class="course-btn-secondary" onclick="cancelCourseIntroEdit()">取消</button>
+              <button type="button" class="course-btn" onclick="saveCourseIntro()">保存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 课程课件/笔记 -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <h4>📝 课程课件/笔记</h4>
+          </div>
+          <div class="detail-tabs">
+            <button type="button" class="detail-tab active" data-tab="notes" onclick="switchDetailTab('notes')">📝 笔记</button>
+            <button type="button" class="detail-tab" data-tab="files" onclick="switchDetailTab('files')">📁 文件</button>
+          </div>
+          <div id="detailNotesPanel" class="detail-panel">
+            <textarea id="detailNotesTextarea" class="detail-notes-textarea" placeholder="在这里记录课程笔记..."></textarea>
+            <div class="detail-notes-actions">
+              <button type="button" class="course-btn" onclick="saveDetailNotes()">💾 保存笔记</button>
+            </div>
+          </div>
+          <div id="detailFilesPanel" class="detail-panel" style="display: none;">
+            <div class="detail-files-upload">
+              <p class="upload-hint">上传文件后，请将文件放入以下 GitHub 文件夹：</p>
+              <div class="github-folder-path" id="githubFolderPath"></div>
+            </div>
+            <div class="detail-files-list" id="detailFilesList"></div>
+          </div>
+        </div>
+
+        <!-- 课程作业 -->
+        <div class="detail-section">
+          <div class="detail-section-header">
+            <h4>📋 课程作业</h4>
+            <button type="button" class="detail-add-btn" onclick="openDetailAddHomework()">➕ 添加作业</button>
+          </div>
+          <div class="detail-homework-list" id="detailHomeworkList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加作业模态框（课程详情用） -->
+  <div id="detailAddHomeworkModal" class="modal">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h3>添加作业</h3>
+        <button type="button" class="modal-close" onclick="closeDetailAddHomeworkModal()">&times;</button>
+      </div>
+      <form id="detailAddHomeworkForm" class="modal-form">
+        <input type="hidden" id="detailHomeworkCourseId">
+        <div class="form-group">
+          <label for="detailHomeworkTitle">作业标题 *</label>
+          <input type="text" id="detailHomeworkTitle" required placeholder="例如：第一章练习题">
+        </div>
+        <div class="form-group">
+          <label for="detailHomeworkDesc">作业描述</label>
+          <textarea id="detailHomeworkDesc" rows="3" placeholder="作业的具体要求..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="detailHomeworkDueDate">截止日期</label>
+          <input type="date" id="detailHomeworkDueDate">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="course-btn-secondary" onclick="closeDetailAddHomeworkModal()">取消</button>
+          <button type="submit" class="course-btn">添加</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 页脚 -->
   <footer class="footer">
     <div class="container">
@@ -267,6 +358,12 @@
       document.getElementById('editCourseForm').addEventListener('submit', handleEditCourse);
       document.getElementById('editCourseModal').addEventListener('click', function(e) {
         if (e.target === this) closeEditCourseModal();
+      });
+
+      // 课程详情添加作业表单
+      document.getElementById('detailAddHomeworkForm').addEventListener('submit', handleDetailAddHomework);
+      document.getElementById('detailAddHomeworkModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDetailAddHomeworkModal();
       });
     });
 

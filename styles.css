@@ -611,6 +611,262 @@ ul {
   background: rgba(255, 107, 107, 0.2);
 }
 
+/* 课程详情模态框 */
+.modal-content-lg {
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.course-detail-content {
+  padding: 10px 0;
+}
+
+.detail-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detail-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.detail-section-header h4 {
+  font-size: 1.1rem;
+  color: var(--text-dark);
+}
+
+.detail-edit-btn,
+.detail-add-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--sakura-pink);
+  border-radius: 15px;
+  background: transparent;
+  color: var(--sakura-pink);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detail-edit-btn:hover,
+.detail-add-btn:hover {
+  background: var(--sakura-pink);
+  color: white;
+}
+
+.detail-intro-view {
+  padding: 15px;
+  background: rgba(255, 183, 197, 0.1);
+  border-radius: 10px;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.detail-intro-edit textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.detail-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 详情标签页 */
+.detail-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.detail-tab {
+  padding: 8px 16px;
+  border: 1px solid var(--mint-green);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--mint-dark);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detail-tab:hover,
+.detail-tab.active {
+  background: var(--mint-green);
+  color: white;
+}
+
+.detail-panel {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.detail-notes-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.detail-notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* 文件列表 */
+.detail-files-upload {
+  margin-bottom: 15px;
+}
+
+.upload-hint {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+
+.github-folder-path {
+  padding: 10px;
+  background: rgba(255, 183, 197, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.github-folder-path a {
+  color: var(--sakura-pink);
+  text-decoration: none;
+}
+
+.github-folder-path a:hover {
+  text-decoration: underline;
+}
+
+.detail-files-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-light);
+}
+
+.detail-file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.detail-file-item:last-child {
+  border-bottom: none;
+}
+
+.detail-file-item .file-icon {
+  font-size: 1.2rem;
+}
+
+.detail-file-item .file-name {
+  flex: 1;
+}
+
+/* 作业列表 */
+.detail-homework-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-light);
+}
+
+.detail-homework-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.detail-homework-item:last-child {
+  border-bottom: none;
+}
+
+.detail-homework-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.detail-homework-item.completed {
+  opacity: 0.6;
+}
+
+.detail-homework-item.completed .detail-hw-title {
+  text-decoration: line-through;
+}
+
+.detail-hw-checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.detail-hw-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--sakura-pink);
+}
+
+.detail-hw-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-hw-title {
+  font-size: 0.95rem;
+  color: var(--text-dark);
+}
+
+.detail-hw-date {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.detail-hw-delete {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 5px;
+}
+
+.detail-hw-delete:hover {
+  color: #ff6b6b;
+}
+
 .course-status.upcoming {
   background: rgba(150, 150, 150, 0.3);
   color: #888888;
@@ -2677,6 +2933,15 @@ ul {
 .file-folder-tag {
   font-size: 0.75rem;
   color: var(--text-light);
+}
+
+.file-category-tag {
+  font-size: 0.7rem;
+  color: var(--mint-dark);
+  background: rgba(152, 216, 200, 0.2);
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-left: 5px;
 }
 
 .folder-select-list {
