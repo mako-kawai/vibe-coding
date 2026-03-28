@@ -1353,6 +1353,99 @@ ul {
   color: var(--text-dark);
 }
 
+.help-list-styled {
+  line-height: 1.8;
+  padding-left: 20px;
+}
+
+.help-list-styled li {
+  padding: 8px 0;
+  color: var(--text-light);
+}
+
+.help-text-muted {
+  color: #666;
+}
+
+.help-text-danger {
+  color: #e74c3c;
+}
+
+.help-text-warning {
+  color: #f39c12;
+}
+
+.help-text-info {
+  color: #f1c40f;
+}
+
+.help-settings-section {
+  margin-top: 12px;
+}
+
+.help-settings-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.help-settings-hint {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.help-settings-status {
+  margin-top: 8px;
+}
+
+.help-form-group {
+  margin-top: 12px;
+}
+
+.help-form-label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.help-form-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.help-form-small {
+  color: #888;
+  display: block;
+  margin-top: 4px;
+}
+
+.help-btn-with-margin {
+  margin-top: 10px;
+}
+
+.help-btn-left-margin {
+  margin-left: 8px;
+}
+
+.help-preview-img {
+  max-width: 200px;
+  max-height: 120px;
+  border-radius: 8px;
+  border: 2px solid var(--sakura-pink);
+}
+
+.help-file-hidden {
+  display: none;
+}
+
+.help-cursor-pointer {
+  cursor: pointer;
+}
+
 .help-shortcuts {
   display: flex;
   flex-direction: column;

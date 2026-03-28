@@ -44,21 +44,21 @@
           <!-- 快速上手 -->
           <div class="help-card">
             <h3>🚀 快速上手</h3>
-            <ol style="line-height: 1.8; padding-left: 20px;">
+            <ol class="help-list-styled">
               <li><strong>设置您的 GitHub 仓库</strong>（可选）<br>
-                <span style="color: #666;">在下方「⚙️ 自定义设置」中填入您的 GitHub 仓库路径，这样上传文件时会显示正确的路径提示。</span>
+                <span class="help-text-muted">在下方「⚙️ 自定义设置」中填入您的 GitHub 仓库路径，这样上传文件时会显示正确的路径提示。</span>
               </li>
               <li><strong>添加您的课程</strong><br>
-                <span style="color: #666;">在首页点击「➕ 添加课程」，填写课程名称、选择图标即可。</span>
+                <span class="help-text-muted">在首页点击「➕ 添加课程」，填写课程名称、选择图标即可。</span>
               </li>
               <li><strong>开始记录笔记</strong><br>
-                <span style="color: #666;">进入「课程笔记」页面，选择课程后即可使用 Markdown 语法编写笔记。</span>
+                <span class="help-text-muted">进入「课程笔记」页面，选择课程后即可使用 Markdown 语法编写笔记。</span>
               </li>
               <li><strong>管理作业和待办</strong><br>
-                <span style="color: #666;">在「课程作业」添加作业，带截止日期的作业会自动同步到日程的待办列表。</span>
+                <span class="help-text-muted">在「课程作业」添加作业，带截止日期的作业会自动同步到日程的待办列表。</span>
               </li>
               <li><strong>自定义背景图</strong><br>
-                <span style="color: #666;">在下方「🖼️ 更换背景图」上传本地图片作为网站背景。</span>
+                <span class="help-text-muted">在下方「🖼️ 更换背景图」上传本地图片作为网站背景。</span>
               </li>
             </ol>
           </div>
@@ -78,10 +78,10 @@
           <!-- 待办事项说明 -->
           <div class="help-card">
             <h3>📅 待办事项使用指南</h3>
-            <ul style="line-height: 1.8; padding-left: 20px;">
+            <ul class="help-list-styled">
               <li>输入待办内容，选择截止日期（可选）和关联课程，点击「添加」</li>
               <li>点击复选框可标记完成，完成后文字会变灰并划线</li>
-              <li>截止日期颜色：<span style="color: #e74c3c;">红色=已过期</span>，<span style="color: #f39c12;">橙色=今天</span>，<span style="color: #f1c40f;">黄色=3天内</span></li>
+              <li>截止日期颜色：<span class="help-text-danger">红色=已过期</span>，<span class="help-text-warning">橙色=今天</span>，<span class="help-text-info">黄色=3天内</span></li>
               <li>筛选按钮：「全部」「今天」「即将到期」「已完成」</li>
               <li>添加带截止日期的作业时，会自动在待办中创建关联任务</li>
             </ul>
@@ -90,7 +90,7 @@
           <!-- 课程表说明 -->
           <div class="help-card">
             <h3>📊 课程表使用指南</h3>
-            <ul style="line-height: 1.8; padding-left: 20px;">
+            <ul class="help-list-styled">
               <li>点击「➕ 添加课程项」可以添加新课程到课表中</li>
               <li>选择课程、星期、节次、周次类型（全部/单周/双周）和上课地点</li>
               <li>点击右上角的「⚙️ 设置」可以修改学期开始日期和总周数</li>
@@ -147,7 +147,7 @@
           <div class="help-card">
             <h3>📎 文件上传说明</h3>
             <p>在「课程笔记」页面可以上传文件（Markdown、文本、PDF）。</p>
-            <ul style="line-height: 1.8; padding-left: 20px; margin-top: 10px;">
+            <ul class="help-list-styled">
               <li>上传后请根据提示的 GitHub 路径，将文件手动上传到您的仓库对应目录</li>
               <li>Markdown 和文本文件内容会保存在浏览器中，可直接预览</li>
               <li>PDF 文件只记录元数据，实际预览需要上传到 GitHub 后点击「在新窗口打开」</li>
@@ -195,49 +195,49 @@
           <div class="help-card">
             <h3>⚙️ 自定义设置</h3>
             <p>如果您想使用自己的 GitHub 仓库来存储课程资料，请填写以下信息：</p>
-            <div class="form-group" style="margin-top: 12px;">
-              <label for="githubRepoInput" style="display: block; margin-bottom: 6px;">GitHub 仓库路径</label>
-              <input type="text" id="githubRepoInput" placeholder="例如：username/vibe-coding" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;">
-              <small style="color: #888; display: block; margin-top: 4px;">格式：username/仓库名</small>
+            <div class="form-group help-form-group">
+              <label for="githubRepoInput" class="help-form-label">GitHub 仓库路径</label>
+              <input type="text" id="githubRepoInput" placeholder="例如：username/vibe-coding" class="help-form-input">
+              <small class="help-form-small">格式：username/仓库名</small>
             </div>
-            <button type="button" class="course-btn" style="margin-top: 10px;" onclick="saveGitHubRepo()">保存设置</button>
-            <div id="githubSaveStatus" style="margin-top: 8px;"></div>
+            <button type="button" class="course-btn help-btn-with-margin" onclick="saveGitHubRepo()">保存设置</button>
+            <div id="githubSaveStatus" class="help-settings-status"></div>
           </div>
 
           <!-- 外观设置 -->
           <div class="help-card">
             <h3>🎨 外观设置</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+            <div class="help-settings-row">
               <button type="button" class="course-btn" onclick="toggleDarkMode()" id="darkModeBtn">🌙 深色模式</button>
               <button type="button" class="course-btn-secondary" onclick="toggleSakura()" id="sakuraBtn">🌸 樱花动画</button>
             </div>
-            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-light);">提示：樱花动画在低端设备上可能会造成卡顿，可以关闭以提升性能。</p>
+            <p class="help-settings-hint">提示：樱花动画在低端设备上可能会造成卡顿，可以关闭以提升性能。</p>
           </div>
 
           <!-- 数据备份 -->
           <div class="help-card">
             <h3>💾 数据备份与恢复</h3>
             <p>将您的所有数据导出为 JSON 文件进行备份，或从备份文件恢复数据：</p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+            <div class="help-settings-row">
               <button type="button" class="course-btn" onclick="exportAllData()">📤 导出数据</button>
-              <label class="course-btn-secondary" style="cursor: pointer;">
+              <label class="course-btn-secondary help-cursor-pointer">
                 📥 导入数据
-                <input type="file" accept=".json" style="display: none;" onchange="importAllData(this.files[0])">
+                <input type="file" accept=".json" class="help-file-hidden" onchange="importAllData(this.files[0])">
               </label>
             </div>
-            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-light);">注意：导入数据会覆盖现有数据，请谨慎操作。</p>
+            <p class="help-settings-hint">注意：导入数据会覆盖现有数据，请谨慎操作。</p>
           </div>
 
           <!-- 更换背景图 -->
           <div class="help-card">
             <h3>🖼️ 更换背景图</h3>
             <p>上传您自己的图片作为网站背景（樱花风格效果更佳）：</p>
-            <div class="form-group" style="margin-top: 12px;">
-              <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="handleBgImageUpload(event)">
+            <div class="help-settings-row">
+              <input type="file" id="bgImageInput" accept="image/*" class="help-file-hidden" onchange="handleBgImageUpload(event)" title="选择背景图片">
               <button type="button" class="course-btn-secondary" onclick="document.getElementById('bgImageInput').click()">📁 选择图片</button>
-              <button type="button" class="course-btn" style="margin-left: 8px;" onclick="resetBgImage()">恢复默认</button>
+              <button type="button" class="course-btn help-btn-left-margin" onclick="resetBgImage()">恢复默认</button>
             </div>
-            <div id="bgPreview" style="margin-top: 10px;"></div>
+            <div id="bgPreview" class="help-settings-status"></div>
           </div>
         </div>
       </div>
@@ -280,7 +280,7 @@
       const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
       const preview = document.getElementById('bgPreview');
       if (userSettings.bgImage) {
-        preview.innerHTML = `<img src="${userSettings.bgImage}" style="max-width: 200px; max-height: 120px; border-radius: 8px; border: 2px solid var(--sakura-pink);">`;
+        preview.innerHTML = `<img src="${userSettings.bgImage}" class="help-preview-img">`;
       } else {
         preview.innerHTML = '';
       }
