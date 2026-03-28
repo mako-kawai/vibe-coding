@@ -1305,7 +1305,7 @@ ul {
 
 /* ===== 帮助页面 ===== */
 .help-section {
-  background: rgba(255, 255, 255, 0.85);
+  background: transparent;
 }
 
 .help-content {
@@ -1859,6 +1859,49 @@ ul {
   font-size: 0.8rem;
   color: var(--text-light);
   margin-top: 4px;
+}
+
+.page-bg-item:hover {
+  background: rgba(255, 183, 197, 0.15);
+  cursor: pointer;
+}
+
+/* ===== 背景图选择器 ===== */
+.bg-page-selector {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bg-page-label {
+  font-weight: 500;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.bg-page-select {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.bg-page-select:focus {
+  outline: none;
+  border-color: var(--sakura-pink);
+}
+
+.bg-current-preview {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: rgba(255, 183, 197, 0.05);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-color);
 }
 
 /* ===== 作业展示区 ===== */

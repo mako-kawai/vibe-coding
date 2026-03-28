@@ -231,19 +231,37 @@
           <!-- 更换背景图 -->
           <div class="help-card">
             <h3>🖼️ 更换背景图</h3>
-            <p>上传您自己的图片作为网站背景（樱花风格效果更佳）：</p>
-            <p class="help-text-muted" style="margin-bottom: 12px;">当前页面：<strong id="currentPageLabel">-</strong></p>
-            <div class="help-settings-row">
-              <label for="bgImageInput" class="course-btn-secondary help-cursor-pointer">📁 选择图片</label>
-              <input type="file" id="bgImageInput" accept="image/*" class="help-file-hidden" onchange="handleBgImageUpload(event)" title="选择背景图片">
-              <button type="button" class="course-btn help-btn-left-margin" onclick="resetBgImage()">恢复默认</button>
-            </div>
-            <div id="bgPreview" class="help-settings-status"></div>
+            <p>为不同页面设置专属背景图，上传后自动应用到对应页面：</p>
 
-            <!-- 每页背景管理 -->
-            <div class="help-bg-per-page" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color);">
-              <h4 style="margin-bottom: 10px;">📋 各页面背景设置</h4>
-              <p class="help-text-muted" style="font-size: 12px; margin-bottom: 10px;">切换到其他页面后，可分别为该页面设置背景图</p>
+            <!-- 页面选择 -->
+            <div class="bg-page-selector">
+              <label class="bg-page-label">选择页面：</label>
+              <select id="bgPageSelect" class="bg-page-select" title="选择要设置背景的页面" onchange="selectBgPage(this.value)">
+                <option value="index">🏠 首页</option>
+                <option value="notes">📝 课程笔记</option>
+                <option value="homework">📋 课程作业</option>
+                <option value="schedule">📅 日程</option>
+                <option value="help">❓ 帮助</option>
+              </select>
+            </div>
+
+            <!-- 当前预览 -->
+            <div class="bg-current-preview">
+              <p class="help-text-muted">当前预览：<strong id="currentPageLabel">🏠 首页</strong></p>
+              <div id="bgPreview" class="help-settings-status"></div>
+            </div>
+
+            <!-- 上传控制 -->
+            <div class="help-settings-row">
+              <label for="bgImageInput" class="course-btn-secondary help-cursor-pointer">📁 上传背景图</label>
+              <input type="file" id="bgImageInput" accept="image/*" class="help-file-hidden" onchange="handleBgImageUpload(event)" title="选择背景图片">
+              <button type="button" class="course-btn help-btn-left-margin" onclick="resetBgImage()">🗑️ 清除</button>
+            </div>
+
+            <!-- 已设置的页面背景 -->
+            <div class="help-bg-per-page">
+              <h4>📋 已设置的页面背景</h4>
+              <p class="help-text-muted help-bg-notice">点击以下卡片可快速切换并管理各页面背景</p>
               <div id="pageBgList" class="help-page-bg-grid"></div>
             </div>
           </div>
@@ -256,7 +274,7 @@
   <footer class="footer">
     <div class="container">
       <p>mako's Learning · 2026</p>
-      <p class="footer-note">在樱花之森下漫步</p>
+      <p class="footer-note">漫步于樱花之森下</p>
     </div>
   </footer>
 
@@ -315,9 +333,9 @@
       const pageIds = Object.keys(PAGE_NAMES);
       const html = pageIds.map(pageId => {
         const hasBg = bgImages[pageId] ? true : false;
-        const isCurrent = pageId === getCurrentPageId();
+        const isCurrent = pageId === getSelectedPageId();
         return `
-          <div class="page-bg-item ${isCurrent ? 'current' : ''}" data-page="${pageId}">
+          <div class="page-bg-item ${isCurrent ? 'current' : ''}" data-page="${pageId}" onclick="selectBgPage('${pageId}')">
             <span class="page-bg-name">${PAGE_NAMES[pageId]}</span>
             <span class="page-bg-status">${hasBg ? '✅ 已设置' : '⬜ 未设置'}</span>
           </div>
@@ -327,19 +345,28 @@
       listContainer.innerHTML = html;
     }
 
-    // 加载背景图预览（支持 per-page）
-    async function loadBgPreview() {
-      const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
-      const preview = document.getElementById('bgPreview');
-      const pageId = getCurrentPageId();
-      const bgImages = userSettings.bgImages || {};
+    // 获取下拉框选择的页面ID
+    function getSelectedPageId() {
+      const select = document.getElementById('bgPageSelect');
+      return select ? select.value : getCurrentPageId();
+    }
+
+    // 选择页面并加载预览
+    async function selectBgPage(pageId) {
+      // 更新下拉框
+      const select = document.getElementById('bgPageSelect');
+      if (select) select.value = pageId;
 
       // 更新当前页面标签
       const pageLabel = document.getElementById('currentPageLabel');
-      if (pageLabel) pageLabel.textContent = getCurrentPageName();
+      if (pageLabel) pageLabel.textContent = PAGE_NAMES[pageId] || pageId;
 
-      // 获取当前页面的图片 ID
+      // 加载该页面的背景预览
+      const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
+      const preview = document.getElementById('bgPreview');
+      const bgImages = userSettings.bgImages || {};
       const imageId = bgImages[pageId];
+
       if (imageId) {
         try {
           const blobUrl = await ImageDB.getImageUrl(imageId);
@@ -357,9 +384,22 @@
       if (userSettings.bgImage) {
         preview.innerHTML = `<img src="${userSettings.bgImage}" class="help-preview-img">`;
       } else {
-        preview.innerHTML = '';
+        preview.innerHTML = '<span class="help-text-muted">该页面暂无自定义背景</span>';
       }
+
       await loadPageBgList();
+    }
+
+    // 加载背景图预览（支持下拉框选择）
+    async function loadBgPreview() {
+      const selectedPage = getSelectedPageId();
+
+      // 更新当前页面标签
+      const pageLabel = document.getElementById('currentPageLabel');
+      if (pageLabel) pageLabel.textContent = PAGE_NAMES[selectedPage] || selectedPage;
+
+      // 加载选中页面的背景
+      await selectBgPage(selectedPage);
     }
 
     // 处理背景图上传（使用 IndexedDB 存储大图片）
@@ -377,7 +417,7 @@
         const { id, blobUrl } = await ImageDB.storeImage(file);
 
         const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
-        const pageId = getCurrentPageId();
+        const pageId = getSelectedPageId(); // 使用下拉框选择的页面
 
         // 保存为 per-page 背景
         if (!userSettings.bgImages) userSettings.bgImages = {};
@@ -388,22 +428,24 @@
 
         localStorage.setItem('user_settings', JSON.stringify(userSettings));
 
-        // 更新背景
-        document.body.style.backgroundImage = `url('${blobUrl}')`;
+        // 如果是当前页面，则更新背景
+        if (pageId === getCurrentPageId()) {
+          document.body.style.backgroundImage = `url('${blobUrl}')`;
+        }
 
         // 更新预览
         await loadBgPreview();
-        showToast('背景图已更新！', 'success');
+        showToast(`${PAGE_NAMES[pageId]} 背景已更新！`, 'success');
       } catch (e) {
         console.error('Failed to upload background image:', e);
         showToast('上传失败，请重试', 'error');
       }
     }
 
-    // 恢复默认背景（清除当前页面背景）
+    // 恢复默认背景（清除选中页面背景）
     async function resetBgImage() {
       const userSettings = JSON.parse(localStorage.getItem('user_settings') || '{}');
-      const pageId = getCurrentPageId();
+      const pageId = getSelectedPageId(); // 使用下拉框选择的页面
 
       // 删除当前页面的背景
       if (userSettings.bgImages && userSettings.bgImages[pageId]) {
@@ -448,9 +490,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+      // 初始化页面选择下拉框
+      const select = document.getElementById('bgPageSelect');
+      if (select) select.value = getCurrentPageId();
+
       loadGitHubRepoSetting();
       loadBgPreview();
-      loadPageBgList(); // 确保页面背景列表始终显示
+      loadPageBgList();
       initBackground();
       initSakuraSetting();
     });

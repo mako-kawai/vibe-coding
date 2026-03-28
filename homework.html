@@ -113,9 +113,9 @@
         <button type="button" class="modal-close" onclick="closeHomeworkTagsModal()">&times;</button>
       </div>
       <div class="modal-form">
-        <p style="margin-bottom: 15px; color: var(--text-light);">选择标签来筛选作业（可多选）</p>
-        <div id="homeworkTagList" style="margin-bottom: 15px;"></div>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <p class="modal-description">选择标签来筛选作业（可多选）</p>
+        <div id="homeworkTagList" class="modal-tag-list"></div>
+        <div class="modal-actions">
           <button type="button" class="course-btn-secondary" onclick="clearHomeworkTagFilters()">清除筛选</button>
           <button type="button" class="course-btn" onclick="closeHomeworkTagsModal()">确定</button>
         </div>
@@ -131,8 +131,8 @@
         <button type="button" class="modal-close" onclick="closeHomeworkManageTagsModal()">&times;</button>
       </div>
       <div class="modal-form">
-        <p id="homeworkTagFileName" style="margin-bottom: 15px; color: var(--text-light);"></p>
-        <div id="homeworkTagsListForFile" style="margin-bottom: 15px;"></div>
+        <p id="homeworkTagFileName" class="modal-description"></p>
+        <div id="homeworkTagsListForFile" class="modal-tag-list"></div>
         <div class="form-actions">
           <button type="button" class="course-btn-secondary" onclick="closeHomeworkManageTagsModal()">关闭</button>
         </div>
@@ -144,7 +144,7 @@
   <footer class="footer">
     <div class="container">
       <p>mako's Learning · 2026</p>
-      <p class="footer-note">在樱花之森下漫步</p>
+      <p class="footer-note">漫步于樱花之森下</p>
     </div>
   </footer>
 
