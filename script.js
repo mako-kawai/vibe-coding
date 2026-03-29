@@ -385,6 +385,10 @@ function loadNoteContent(courseId, noteId) {
   textarea.value = content;
   lastSavedContent = content;
 
+  // 加载笔记标签
+  loadNoteTagIds(courseId, noteId);
+  renderNotesTagsList();
+
   if (statusEl) {
     const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
     const note = notesList.find(n => n.id === noteId);
@@ -440,13 +444,16 @@ function createNewNote() {
     id: noteId,
     name: noteName,
     createdAt: Date.now(),
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
+    tagIds: []
   });
   localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
 
   loadNotesList(courseId);
   noteSelect.value = noteId;
   loadNoteContent(courseId, noteId);
+  currentNoteTagIds = [];
+  renderNotesTagsList();
   showToast('已创建新笔记', 'success');
 }
 
@@ -478,6 +485,27 @@ function deleteCurrentNote() {
   showToast('笔记已删除', 'success');
 }
 
+function renameCurrentNote() {
+  const courseSelect = document.getElementById('courseSelect');
+  const noteSelect = document.getElementById('noteSelect');
+  if (!courseSelect || !noteSelect || !currentNoteId) return;
+
+  const courseId = courseSelect.value;
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  const note = notesList.find(n => n.id === currentNoteId);
+  if (!note) return;
+
+  const newName = prompt('请输入新的笔记名称：', note.name);
+  if (!newName || newName.trim() === note.name) return;
+
+  note.name = newName.trim();
+  note.updatedAt = Date.now();
+  localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
+  loadNotesList(courseId);
+  noteSelect.value = currentNoteId;
+  showToast('笔记已重命名', 'success');
+}
+
 function importMarkdownFile() {
   const courseSelect = document.getElementById('courseSelect');
   const noteSelect = document.getElementById('noteSelect');
@@ -498,7 +526,8 @@ function importMarkdownFile() {
         id: noteId,
         name: noteName,
         createdAt: Date.now(),
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        tagIds: []
       });
       localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
       localStorage.setItem(getNoteContentKey(courseId, noteId), evt.target.result);
@@ -538,6 +567,70 @@ function exportMarkdownFile() {
   a.click();
   URL.revokeObjectURL(url);
   showToast('已导出: ' + filename, 'success');
+}
+
+// ===== 笔记标签管理 =====
+let currentNoteTagIds = []; // 当前笔记的标签
+
+function loadNoteTagIds(courseId, noteId) {
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  const note = notesList.find(n => n.id === noteId);
+  if (note && note.tagIds) {
+    currentNoteTagIds = [...note.tagIds];
+  } else {
+    currentNoteTagIds = [];
+  }
+}
+
+function saveNoteTagIds(courseId, noteId) {
+  const notesList = JSON.parse(localStorage.getItem(getNotesListKey(courseId)) || '[]');
+  const noteIndex = notesList.findIndex(n => n.id === noteId);
+  if (noteIndex !== -1) {
+    notesList[noteIndex].tagIds = currentNoteTagIds;
+    localStorage.setItem(getNotesListKey(courseId), JSON.stringify(notesList));
+  }
+}
+
+function toggleNoteTag(tagId) {
+  const index = currentNoteTagIds.indexOf(tagId);
+  if (index === -1) {
+    currentNoteTagIds.push(tagId);
+  } else {
+    currentNoteTagIds.splice(index, 1);
+  }
+  const courseSelect = document.getElementById('courseSelect');
+  if (courseSelect && currentNoteId) {
+    saveNoteTagIds(courseSelect.value, currentNoteId);
+  }
+  renderNotesTagsList();
+}
+
+function renderNotesTagsList() {
+  const container = document.getElementById('tagsList');
+  const tags = loadNotesTags();
+  const currentCourse = document.getElementById('courseSelect')?.value;
+  if (!currentCourse) {
+    container.innerHTML = '<span class="tags-empty">请先选择课程</span>';
+    return;
+  }
+  const courseTags = tags.filter(t => t.courseId === currentCourse);
+
+  if (courseTags.length === 0) {
+    container.innerHTML = '<span class="tags-empty">当前课程暂无标签</span>';
+    return;
+  }
+
+  container.innerHTML = courseTags.map(tag => {
+    const isSelected = currentNoteTagIds.includes(tag.id);
+    const icon = tag.icon ? tag.icon + ' ' : '';
+    return `
+      <span class="tag-item ${isSelected ? 'tag-selected' : ''}"
+            style="background-color: ${tag.color}20; border-color: ${tag.color};"
+            onclick="toggleNoteTag('${tag.id}')" title="点击切换标签">
+        <span class="tag-name">${icon}${tag.name}${isSelected ? ' ✓' : ''}</span>
+      </span>
+    `;
+  }).join('');
 }
 
 function renderNotePreview(content) {
@@ -595,6 +688,7 @@ function initNotes() {
   if (notesList.length > 0) {
     loadNoteContent(currentCourse, notesList[0].id);
   }
+  renderNotesTagsList();
 
   // 课程切换
   if (courseSelect) {
@@ -607,6 +701,7 @@ function initNotes() {
       } else {
         loadNoteContent(courseId, null);
       }
+      renderNotesTagsList();
     });
   }
 
@@ -615,6 +710,7 @@ function initNotes() {
     noteSelect.addEventListener('change', () => {
       const courseId = courseSelect ? courseSelect.value : 'atmosphere';
       loadNoteContent(courseId, noteSelect.value);
+      renderNotesTagsList();
     });
   }
 

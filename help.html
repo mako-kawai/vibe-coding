@@ -141,6 +141,26 @@
                 <span>多行代码块</span>
               </div>
             </div>
+
+            <!-- LaTeX 公式说明 -->
+            <h4 style="margin-top: 20px; color: var(--sakura-dark);">📐 LaTeX 数学公式</h4>
+            <div class="markdown-help">
+              <div class="md-example">
+                <code>$行内公式$</code>
+                <span>行内公式（如 $x^2$）</span>
+              </div>
+              <div class="md-example">
+                <code>$$块级公式$$</code>
+                <span>块级公式（居中显示）</span>
+              </div>
+              <div class="md-example">
+                <code>\[ 多行公式 \\ 换行 \]</code>
+                <span>多行公式（使用 \\[...\\] 包裹，\\\\ 换行）</span>
+              </div>
+            </div>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-light);">
+              <strong>提示：</strong>KaTeX 不支持 <code>$$$$...$$$$</code> 语法。请使用 <code>\[ ... \]</code> 包裹多行公式，内部使用 <code>\\</code> 换行。
+            </p>
           </div>
 
           <!-- 文件上传说明 -->
