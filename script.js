@@ -795,7 +795,23 @@ async function initGlobalBackground() {
     try {
       const blobUrl = await ImageDB.getImageUrl(bgImages[pageId]);
       if (blobUrl) {
-        document.body.style.backgroundImage = `url('${blobUrl}')`;
+        // 测试图片是否能实际加载
+        const img = new Image();
+        img.onload = () => {
+          document.body.style.background = `url('${blobUrl}')`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+          document.body.style.backgroundRepeat = 'no-repeat';
+        };
+        img.onerror = () => {
+          // 图片加载失败，清除设置并使用默认渐变
+          console.warn('Background image failed to load, using default gradient');
+          delete bgImages[pageId];
+          userSettings.bgImages = bgImages;
+          localStorage.setItem('user_settings', JSON.stringify(userSettings));
+        };
+        img.src = blobUrl;
         return;
       }
     } catch (e) {
@@ -805,8 +821,13 @@ async function initGlobalBackground() {
 
   // 回退到旧的全局 bgImage（兼容性）
   if (userSettings.bgImage) {
-    document.body.style.backgroundImage = `url('${userSettings.bgImage}')`;
+    document.body.style.background = `url('${userSettings.bgImage}')`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.backgroundRepeat = 'no-repeat';
   }
+  // 否则使用 CSS 默认渐变背景（由 styles.css 定义）
 }
 
 // ===== 初始化 =====
