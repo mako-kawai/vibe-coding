@@ -646,7 +646,9 @@ function renderNotePreview(content) {
           {left: '\\[', right: '\\]', display: true},
           {left: '\\(', right: '\\)', display: false}
         ],
-        throwOnError: false
+        throwOnError: false,
+        strict: function() { return false; },
+        trust: true
       });
     }
   }
