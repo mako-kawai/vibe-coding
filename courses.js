@@ -334,9 +334,19 @@ function openCourseDetailModal(courseId) {
   document.getElementById('detailIntroText').textContent = introText;
   document.getElementById('detailIntroInput').value = course.description || '';
 
-  // 加载笔记
-  const notesKey = 'course_notes_' + courseId;
-  const notes = localStorage.getItem(notesKey) || '';
+  // 加载笔记（优先从多笔记系统读取，否则回退到旧格式）
+  let notes = '';
+  const notesListKey = 'notes_list_' + courseId;
+  const notesList = JSON.parse(localStorage.getItem(notesListKey) || '[]');
+  if (notesList.length > 0) {
+    // 从多笔记系统读取第一个笔记
+    const firstNoteId = notesList[0].id;
+    notes = localStorage.getItem('note_content_' + courseId + '_' + firstNoteId) || '';
+  } else {
+    // 回退到旧的存储格式
+    const notesKey = 'course_notes_' + courseId;
+    notes = localStorage.getItem(notesKey) || '';
+  }
   document.getElementById('detailNotesTextarea').value = notes;
 
   // 设置 GitHub 文件夹路径（支持多用户）
@@ -410,9 +420,36 @@ function switchDetailTab(tabName) {
 
 function saveDetailNotes() {
   if (!currentDetailCourseId) return;
+  const courseId = currentDetailCourseId;
   const notes = document.getElementById('detailNotesTextarea').value;
-  const notesKey = 'course_notes_' + currentDetailCourseId;
+
+  // 保存到多笔记系统
+  const notesListKey = 'notes_list_' + courseId;
+  let notesList = JSON.parse(localStorage.getItem(notesListKey) || '[]');
+  const detailNoteName = '课程详情笔记';
+
+  if (notesList.length === 0) {
+    // 创建第一个笔记
+    const noteId = 'note_' + Date.now();
+    notesList.push({
+      id: noteId,
+      name: detailNoteName,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+    localStorage.setItem(notesListKey, JSON.stringify(notesList));
+    localStorage.setItem('note_content_' + courseId + '_' + noteId, notes);
+  } else {
+    // 更新第一个笔记
+    notesList[0].updatedAt = Date.now();
+    localStorage.setItem(notesListKey, JSON.stringify(notesList));
+    localStorage.setItem('note_content_' + courseId + '_' + notesList[0].id, notes);
+  }
+
+  // 兼容旧格式
+  const notesKey = 'course_notes_' + courseId;
   localStorage.setItem(notesKey, notes);
+
   alert('笔记已保存！');
 }
 

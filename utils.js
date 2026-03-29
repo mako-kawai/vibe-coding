@@ -27,26 +27,6 @@ const Storage = {
   }
 };
 
-// ===== Toast 通知 =====
-function showToast(message, type = 'info', duration = 3000) {
-  let container = document.querySelector('.toast-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-  }
-
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  container.appendChild(toast);
-
-  setTimeout(() => {
-    toast.classList.add('toast-out');
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
-}
-
 // ===== 防抖函数 =====
 function debounce(func, wait) {
   let timeout;
