@@ -637,7 +637,43 @@ function renderNotePreview(content) {
   const previewPanel = document.getElementById('notesPreview');
   const markdownBody = previewPanel ? previewPanel.querySelector('.markdown-body') : null;
   if (typeof marked !== 'undefined' && markdownBody) {
-    markdownBody.innerHTML = marked.parse(content);
+    // 保护公式块，防止 marked 处理其中的内容
+    const formulas = [];
+    let processedContent = content;
+
+    // 保护 $$...$$ 块（display 公式）
+    processedContent = processedContent.replace(/\$\$[\s\S]*?\$\$/g, (match) => {
+      formulas.push(match);
+      return `<<<FORMULA_${formulas.length - 1}>>>`;
+    });
+
+    // 保护 \[...\] 块
+    processedContent = processedContent.replace(/\\\[[\s\S]*?\\\]/g, (match) => {
+      formulas.push(match);
+      return `<<<FORMULA_${formulas.length - 1}>>>`;
+    });
+
+    // 保护 $...$ 块（行内公式）
+    processedContent = processedContent.replace(/\$[^\$\n]+?\$/g, (match) => {
+      formulas.push(match);
+      return `<<<FORMULA_${formulas.length - 1}>>>`;
+    });
+
+    // 保护 \(...\) 块
+    processedContent = processedContent.replace(/\\\([\s\S]*?\\\)/g, (match) => {
+      formulas.push(match);
+      return `<<<FORMULA_${formulas.length - 1}>>>`;
+    });
+
+    // marked 解析
+    let html = marked.parse(processedContent);
+
+    // 恢复公式（转回原始格式）
+    formulas.forEach((formula, index) => {
+      html = html.replace(`<<<FORMULA_${index}>>>`, formula);
+    });
+
+    markdownBody.innerHTML = html;
     if (typeof renderMathInElement !== 'undefined') {
       renderMathInElement(markdownBody, {
         delimiters: [
