@@ -644,25 +644,25 @@ function renderNotePreview(content) {
     // 保护 $$...$$ 块（display 公式）
     processedContent = processedContent.replace(/\$\$[\s\S]*?\$\$/g, (match) => {
       formulas.push(match);
-      return `<!--FORMULA_${formulas.length - 1}-->`;
+      return `\x00KFP${formulas.length - 1}\x00`;
     });
 
     // 保护 \[...\] 块
     processedContent = processedContent.replace(/\\\[[\s\S]*?\\\]/g, (match) => {
       formulas.push(match);
-      return `<!--FORMULA_${formulas.length - 1}-->`;
+      return `\x00KFP${formulas.length - 1}\x00`;
     });
 
     // 保护 $...$ 块（行内公式）
     processedContent = processedContent.replace(/\$[^\$\n]+?\$/g, (match) => {
       formulas.push(match);
-      return `<!--FORMULA_${formulas.length - 1}-->`;
+      return `\x00KFP${formulas.length - 1}\x00`;
     });
 
     // 保护 \(...\) 块
     processedContent = processedContent.replace(/\\\([\s\S]*?\\\)/g, (match) => {
       formulas.push(match);
-      return `<!--FORMULA_${formulas.length - 1}-->`;
+      return `\x00KFP${formulas.length - 1}\x00`;
     });
 
     // marked 解析
@@ -670,7 +670,7 @@ function renderNotePreview(content) {
 
     // 恢复公式（转回原始格式）
     formulas.forEach((formula, index) => {
-      html = html.replace(new RegExp(`<!--FORMULA_${index}-->`, 'g'), formula);
+      html = html.replace(new RegExp(`\x00KFP${index}\x00`, 'g'), formula);
     });
 
     markdownBody.innerHTML = html;
