@@ -2437,19 +2437,13 @@ ul {
 
 /* 确保公式本身不换行，超出时滚动 */
 .markdown-body .katex {
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .markdown-body .katex-display .katex-html {
-  display: block;
+  display: inline-block;
   max-width: 100%;
   overflow-x: auto;
-}
-
-/* 确保表格内的公式也能正确显示 */
-.markdown-body table .katex-display {
-  margin: 5px 0;
-  padding: 5px;
 }
 
 .notes-footer {
