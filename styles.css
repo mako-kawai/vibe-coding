@@ -2069,7 +2069,7 @@ ul {
   background: var(--bg-card);
   border-radius: var(--radius);
   box-shadow: var(--shadow-soft);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .notes-header {
@@ -2288,6 +2288,7 @@ ul {
   padding: 25px;
   min-height: 400px;
   background: var(--bg-card);
+  overflow-x: visible;
 }
 
 .notes-preview-hidden {
@@ -2418,25 +2419,37 @@ ul {
 
 .markdown-body .katex-display {
   margin: 15px 0;
+  padding: 10px;
+  max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 10px 0;
-  max-width: 100%;
+  text-align: center;
+  /* 确保容器不会被父元素截断 */
+  isolation: isolate;
 }
 
 .markdown-body .katex-display > .katex {
-  display: block;
+  display: inline-block;
   text-align: center;
-  white-space: nowrap;
+  /* 确保 KaTeX 不会让容器溢出 */
+  max-width: 100%;
+}
+
+/* 确保公式本身不换行，超出时滚动 */
+.markdown-body .katex {
+  white-space: normal;
+}
+
+.markdown-body .katex-display .katex-html {
+  display: block;
   max-width: 100%;
   overflow-x: auto;
 }
 
-/* 确保公式区域可以滚动 */
-.markdown-body .katex-display::after {
-  content: '';
-  display: block;
-  clear: both;
+/* 确保表格内的公式也能正确显示 */
+.markdown-body table .katex-display {
+  margin: 5px 0;
+  padding: 5px;
 }
 
 .notes-footer {
