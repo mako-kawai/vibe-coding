@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="物理学习驾驶舱">
+  <rect width="512" height="512" rx="88" fill="#f4f1eb"/>
+  <circle cx="256" cy="256" r="49" fill="#8f2f3a"/>
+  <g fill="none" stroke="#243449" stroke-width="22">
+    <ellipse cx="256" cy="256" rx="176" ry="72" transform="rotate(28 256 256)"/>
+    <ellipse cx="256" cy="256" rx="176" ry="72" transform="rotate(-28 256 256)"/>
+    <ellipse cx="256" cy="256" rx="72" ry="176"/>
+  </g>
+  <circle cx="405" cy="337" r="23" fill="#2d7373"/>
+</svg>

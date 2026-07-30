@@ -1,17 +1,15 @@
 {
-  "name": "mako's Learning",
-  "short_name": "学习记录",
-  "description": "个人学习记录网站",
-  "start_url": "/vibe-coding/",
+  "name": "mako's Learning · 北大物理学习驾驶舱",
+  "short_name": "物理驾驶舱",
+  "description": "面向物理本科生日常任务、课程、笔记、日程与正式成绩的本地优先学习驾驶舱。",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#FAFAFA",
-  "theme_color": "#FFB7C5",
+  "background_color": "#f4f1eb",
+  "theme_color": "#8f2f3a",
   "icons": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
+    { "src": "assets/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ],
   "lang": "zh-CN"
 }

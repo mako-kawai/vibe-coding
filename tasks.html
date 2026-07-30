@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8f2f3a"><title>任务 · mako's learning</title>
+  <link rel="stylesheet" href="styles.css?v=20260730"><script defer src="vendor/lucide.min.js"></script><script type="module" src="js/tasks.js"></script>
+</head>
+<body data-page="tasks">
+  <main class="workspace">
+    <section class="page-heading compact"><div><span class="eyebrow">ACADEMIC TASKS</span><h1>任务与截止时间</h1><p class="page-lead">作业、考试、实验和个人计划共用一条可靠的任务流。</p></div><button id="addTaskButton" class="primary-action" type="button"><i data-lucide="plus"></i>新任务</button></section>
+    <section class="toolbar" aria-label="任务筛选">
+      <div class="segmented" id="statusFilters"><button class="active" data-status="active">待完成</button><button data-status="all">全部</button><button data-status="done">已完成</button></div>
+      <select id="courseFilter" aria-label="课程筛选"></select>
+      <select id="typeFilter" aria-label="任务类型"><option value="">全部类型</option><option value="homework">作业</option><option value="exam">考试</option><option value="reading">阅读</option><option value="lab">实验</option><option value="project">项目</option><option value="personal">个人</option></select>
+      <input id="taskSearch" type="search" placeholder="搜索任务" aria-label="搜索任务">
+    </section>
+    <section id="focusBar" class="focus-bar hidden" aria-live="polite"><div class="focus-pulse"><i data-lucide="timer"></i></div><div class="focus-copy"><span class="eyebrow">FOCUS SESSION</span><strong id="focusTaskTitle">专注任务</strong><small id="focusEstimate"></small></div><time id="focusClock">00:00</time><div class="focus-actions"><button id="pauseFocusButton" class="icon-btn" type="button" title="暂停专注" aria-label="暂停专注"><i data-lucide="pause"></i></button><button id="resumeFocusButton" class="icon-btn hidden" type="button" title="继续专注" aria-label="继续专注"><i data-lucide="play"></i></button><button id="finishFocusButton" class="primary-action" type="button"><i data-lucide="square"></i>结束并记录</button></div></section>
+    <section class="panel task-board"><div class="list-summary"><span id="taskSummary">0 个任务</span><span id="workloadSummary">预计 0 小时</span></div><div id="taskList" class="task-list"></div></section>
+  </main>
+
+  <dialog id="taskDialog" class="app-dialog form-dialog">
+    <form id="taskForm" method="dialog">
+      <div class="dialog-head"><div><span class="eyebrow">TASK EDITOR</span><h2 id="taskDialogTitle">新建任务</h2></div><button class="icon-btn" type="button" data-close-dialog title="关闭" aria-label="关闭"><i data-lucide="x"></i></button></div>
+      <input id="taskId" type="hidden">
+      <div class="form-grid">
+        <label class="span-2">任务标题<input id="taskTitle" required maxlength="120"></label>
+        <label>所属课程<select id="taskCourse"></select></label>
+        <label>任务类型<select id="taskType"><option value="homework">作业</option><option value="exam">考试</option><option value="reading">阅读</option><option value="lab">实验</option><option value="project">项目</option><option value="personal">个人</option></select></label>
+        <label>截止时间<input id="taskDueAt" type="datetime-local"></label>
+        <label>优先级<select id="taskPriority"><option value="high">高</option><option value="medium" selected>中</option><option value="low">低</option></select></label>
+        <label>预计用时（分钟）<input id="taskEstimate" type="number" min="0" step="15" value="60"></label>
+        <label>进度（%）<input id="taskProgress" type="number" min="0" max="100" value="0"></label>
+        <label class="span-2">标签（逗号分隔）<input id="taskTags" placeholder="期中, 重点"></label>
+        <label class="span-2">子任务（每行一项）<textarea id="taskSubtasks" rows="4" placeholder="完成第一问&#10;检查边界条件"></textarea></label>
+        <label class="span-2">说明<textarea id="taskDescription" rows="3"></textarea></label>
+      </div>
+      <div class="dialog-actions"><button id="deleteTaskButton" class="danger-button hidden" type="button"><i data-lucide="trash-2"></i>删除</button><span class="action-spacer"></span><button class="secondary-action" type="button" data-close-dialog>取消</button><button class="primary-action" type="submit"><i data-lucide="save"></i>保存</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

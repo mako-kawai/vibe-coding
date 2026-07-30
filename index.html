@@ -1,578 +1,64 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mako的学习记录</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260329">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8f2f3a">
+  <title>总览 · mako's learning</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#FFB7C5">
-  <meta name="color-scheme" content="light">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('Service Worker registered'))
-          .catch(err => console.log('Service Worker registration failed:', err));
-      });
-    }
-  </script>
+  <link rel="stylesheet" href="styles.css?v=20260730">
+  <script defer src="vendor/lucide.min.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
 </head>
-<body>
-  <!-- 樱花飘落容器 -->
-  <div class="sakura-container" id="sakuraContainer"></div>
-
-  <!-- 导航栏 -->
-  <nav class="navbar">
-    <div class="nav-content">
-      <a href="index.html" class="nav-logo">🌸 mako's Learning</a>
-      <ul class="nav-links">
-        <li><a href="index.html" class="active">首页</a></li>
-        <li><a href="notes.html">课程笔记</a></li>
-        <li><a href="homework.html">课程作业</a></li>
-        <li><a href="schedule.html">日程</a></li>
-        <li><a href="help.html">帮助</a></li>
-      </ul>
-      <button type="button" class="search-btn" onclick="openSearchModal()" title="搜索">🔍</button>
-    </div>
-  </nav>
-
-  <!-- 搜索模态框 -->
-  <div id="searchModal" class="modal hidden">
-    <div class="modal-content modal-content-sm">
-      <div class="modal-header">
-        <h3>🔍 全局搜索</h3>
-        <button type="button" class="modal-close" onclick="closeSearchModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="text" id="searchInput" class="search-input" placeholder="输入关键词搜索笔记、作业、待办..." oninput="performSearch()">
-        <div id="searchResults" class="search-results"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 主要内容 -->
-  <main class="main-content">
-    <!-- 个人介绍区 -->
-    <section id="about" class="section about-section">
-      <div class="container">
-        <div class="about-card fade-in">
-          <button type="button" class="edit-profile-btn" onclick="openProfileModal()">✏️ 编辑</button>
-          <div class="avatar-wrapper">
-            <div class="avatar" id="profileAvatar">🌸</div>
-          </div>
-          <div class="about-info">
-            <h1 class="name" id="profileName">mako</h1>
-            <p class="nickname" id="profileNickname">柚子厨 · 枕批</p>
-            <p class="bio" id="profileBio">
-              正在探索编程世界的学生。旮旯给木爱好者，
-              希望创造有趣的作品。这是一个开始，希望在这里记录我的成长之路。
-            </p>
-            <div class="about-links">
-              <a href="https://github.com" target="_blank" rel="noopener" class="github-link" id="profileGithub">
-                <svg height="20" width="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                GitHub
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+<body data-page="dashboard">
+  <main class="workspace dashboard-page">
+    <section class="page-heading">
+      <div><span class="eyebrow">LEARNING COCKPIT / 总览</span><h1 id="greeting">今天，从最重要的事开始。</h1><p id="todayLabel" class="page-lead"></p></div>
+      <div class="semester-chip"><span id="semesterWeek">学期未设置</span><strong id="semesterProgress">0%</strong></div>
     </section>
 
-    <!-- 我的课程区 -->
-    <section id="courses" class="section courses-section">
-      <div class="container">
-        <div class="section-header fade-in">
-          <h2 class="section-title">📚 我的课程</h2>
-          <button type="button" id="addCourseBtn" class="course-btn">➕ 添加课程</button>
-        </div>
-        <div class="courses-grid" id="coursesGrid">
-          <!-- 课程卡片将由 courses.js 动态渲染 -->
-        </div>
-      </div>
+    <section class="story-strip" aria-label="今日提示">
+      <div class="portrait-token" aria-hidden="true">M</div>
+      <div><span class="speaker">SYSTEM / 学习导航</span><p id="dailyBrief">正在整理今天的课程与截止任务……</p></div>
     </section>
+
+    <nav class="dashboard-jumpbar" aria-label="工作区总入口">
+      <a href="tasks.html"><i data-lucide="list-checks"></i><span>任务</span></a>
+      <a href="courses.html"><i data-lucide="library-big"></i><span>课程</span></a>
+      <a href="notes.html"><i data-lucide="notebook-pen"></i><span>笔记</span></a>
+      <a href="schedule.html"><i data-lucide="calendar-days"></i><span>日程</span></a>
+      <a href="grades.html"><i data-lucide="chart-no-axes-column"></i><span>成绩</span></a>
+      <a href="settings.html"><i data-lucide="settings-2"></i><span>设置</span></a>
+    </nav>
+
+    <div class="dashboard-grid">
+      <section class="panel urgent-panel">
+        <div class="panel-head"><div><span class="eyebrow">DEADLINE QUEUE</span><h2>优先处理</h2></div><a class="text-link" href="tasks.html">查看全部 <i data-lucide="arrow-right"></i></a></div>
+        <div id="urgentTasks" class="task-stack"></div>
+      </section>
+
+      <section class="panel agenda-panel">
+        <div class="panel-head"><div><span class="eyebrow">TODAY</span><h2>今日课程</h2></div><a class="icon-btn" href="schedule.html" title="打开日程" aria-label="打开日程"><i data-lucide="calendar-days"></i></a></div>
+        <div id="todayAgenda" class="agenda-list"></div>
+      </section>
+
+      <section class="panel exams-panel">
+        <div class="panel-head"><div><span class="eyebrow">COUNTDOWN</span><h2>考试倒计时</h2></div></div>
+        <div id="examCountdowns" class="countdown-list"></div>
+      </section>
+
+      <section class="panel overview-panel">
+        <div class="panel-head"><div><span class="eyebrow">SEMESTER STATUS</span><h2>学期状态</h2></div></div>
+        <div class="metric-grid">
+          <div class="metric"><span>进行中任务</span><strong id="activeTaskCount">0</strong></div>
+          <div class="metric danger"><span>已逾期</span><strong id="overdueCount">0</strong></div>
+          <div class="metric"><span>本学期学分</span><strong id="courseCredits">0</strong></div>
+          <div class="metric"><span>GPA 估算</span><strong id="gpaEstimate">--</strong></div>
+        </div>
+        <div class="progress-line"><span id="progressLineFill"></span></div>
+        <p id="backupReminder" class="micro-copy"></p>
+      </section>
+    </div>
   </main>
-
-  <!-- 添加课程模态框 -->
-  <div id="addCourseModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>添加新课程</h3>
-        <button type="button" class="modal-close" onclick="closeAddCourseModal()">&times;</button>
-      </div>
-      <form id="addCourseForm" class="modal-form">
-        <div class="form-group">
-          <label for="courseName">课程名称 *</label>
-          <input type="text" id="courseName" required placeholder="例如：数据结构">
-        </div>
-        <div class="form-group">
-          <label for="courseIcon">课程图标</label>
-          <input type="text" id="courseIcon" placeholder="例如：📚" value="📚">
-        </div>
-        <div class="form-group">
-          <label for="courseCredit">学分</label>
-          <input type="number" id="courseCredit" min="1" max="10" value="3">
-        </div>
-        <div class="form-group">
-          <label for="courseCategory">分类</label>
-          <input type="text" id="courseCategory" placeholder="例如：计算机科学">
-        </div>
-        <div class="form-group">
-          <label for="courseStatus">状态</label>
-          <select id="courseStatus">
-            <option value="upcoming">未开始</option>
-            <option value="in-progress">学习中</option>
-            <option value="completed">已完成</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="courseDesc">课程描述</label>
-          <textarea id="courseDesc" rows="3" placeholder="课程的简单描述..."></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="course-btn-secondary" onclick="closeAddCourseModal()">取消</button>
-          <button type="submit" class="course-btn">添加</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 编辑个人资料模态框 -->
-  <div id="editProfileModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>编辑个人资料</h3>
-        <button type="button" class="modal-close" onclick="closeProfileModal()">&times;</button>
-      </div>
-      <form id="editProfileForm" class="modal-form">
-        <div class="form-group">
-          <label>头像</label>
-          <div class="avatar-edit-container">
-            <div class="avatar-preview" id="avatarPreview">🌸</div>
-            <input type="file" id="avatarInput" accept="image/*" class="hidden-input" title="选择头像图片">
-            <button type="button" class="course-btn-secondary" onclick="document.getElementById('avatarInput').click()">上传图片</button>
-          </div>
-          <div id="cropContainer" class="crop-container-hidden">
-            <canvas id="cropCanvas" class="crop-canvas"></canvas>
-            <p class="crop-instruction">拖动选择裁剪区域</p>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="profileNameInput">昵称 *</label>
-          <input type="text" id="profileNameInput" required placeholder="你的名字">
-        </div>
-        <div class="form-group">
-          <label for="profileNicknameInput">头衔</label>
-          <input type="text" id="profileNicknameInput" placeholder="例如：柚子厨 · 枕批">
-        </div>
-        <div class="form-group">
-          <label for="profileBioInput">个人简介</label>
-          <textarea id="profileBioInput" rows="3" placeholder="介绍一下你自己..."></textarea>
-        </div>
-        <div class="form-group">
-          <label for="profileGithubInput">GitHub 链接</label>
-          <input type="url" id="profileGithubInput" placeholder="https://github.com/你的用户名">
-        </div>
-        <div class="form-actions">
-          <button type="button" class="course-btn-secondary" onclick="closeProfileModal()">取消</button>
-          <button type="submit" class="course-btn">保存</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 编辑课程模态框 -->
-  <div id="editCourseModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>编辑课程</h3>
-        <button type="button" class="modal-close" onclick="closeEditCourseModal()">&times;</button>
-      </div>
-      <form id="editCourseForm" class="modal-form">
-        <input type="hidden" id="editCourseId">
-        <div class="form-group">
-          <label for="editCourseName">课程名称 *</label>
-          <input type="text" id="editCourseName" required>
-        </div>
-        <div class="form-group">
-          <label for="editCourseIcon">课程图标</label>
-          <input type="text" id="editCourseIcon" value="📚">
-        </div>
-        <div class="form-group">
-          <label for="editCourseCredit">学分</label>
-          <input type="number" id="editCourseCredit" min="1" max="10" value="3">
-        </div>
-        <div class="form-group">
-          <label for="editCourseCategory">分类</label>
-          <input type="text" id="editCourseCategory" placeholder="例如：计算机科学">
-        </div>
-        <div class="form-group">
-          <label for="editCourseStatus">状态</label>
-          <select id="editCourseStatus">
-            <option value="upcoming">未开始</option>
-            <option value="in-progress">学习中</option>
-            <option value="completed">已完成</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="editCourseDesc">课程描述</label>
-          <textarea id="editCourseDesc" rows="3"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="button" id="deleteCourseBtn" class="course-btn-delete" onclick="handleDeleteCourseFromEdit()">🗑️ 删除</button>
-          <button type="button" class="course-btn-secondary" onclick="closeEditCourseModal()">取消</button>
-          <button type="submit" class="course-btn">保存</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 课程详情模态框 -->
-  <div id="courseDetailModal" class="modal">
-    <div class="modal-content modal-content-lg">
-      <div class="modal-header">
-        <h3 id="detailCourseTitle">课程详情</h3>
-        <button type="button" class="modal-close" onclick="closeCourseDetailModal()">&times;</button>
-      </div>
-      <div class="course-detail-content">
-        <!-- 课程简介 -->
-        <div class="detail-section">
-          <div class="detail-section-header">
-            <h4>📖 课程简介</h4>
-            <button type="button" class="detail-edit-btn" onclick="toggleCourseIntroEdit()">✏️ 编辑</button>
-          </div>
-          <div id="detailIntroView" class="detail-intro-view">
-            <p id="detailIntroText">暂无简介</p>
-          </div>
-          <div id="detailIntroEdit" class="detail-intro-edit hidden">
-            <textarea id="detailIntroInput" rows="4" placeholder="输入课程简介..."></textarea>
-            <div class="detail-edit-actions">
-              <button type="button" class="course-btn-secondary" onclick="cancelCourseIntroEdit()">取消</button>
-              <button type="button" class="course-btn" onclick="saveCourseIntro()">保存</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 课程课件/笔记 -->
-        <div class="detail-section">
-          <div class="detail-section-header">
-            <h4>📝 课程课件/笔记</h4>
-          </div>
-          <div class="detail-tabs">
-            <button type="button" class="detail-tab active" data-tab="notes" onclick="switchDetailTab('notes')">📝 笔记</button>
-            <button type="button" class="detail-tab" data-tab="files" onclick="switchDetailTab('files')">📁 文件</button>
-          </div>
-          <div id="detailNotesPanel" class="detail-panel">
-            <textarea id="detailNotesTextarea" class="detail-notes-textarea" placeholder="在这里记录课程笔记..."></textarea>
-            <div class="detail-notes-actions">
-              <button type="button" class="course-btn" onclick="saveDetailNotes()">💾 保存笔记</button>
-            </div>
-          </div>
-          <div id="detailFilesPanel" class="detail-panel hidden">
-            <div class="detail-files-upload">
-              <p class="upload-hint">上传文件后，请将文件放入以下 GitHub 文件夹：</p>
-              <div class="github-folder-path" id="githubFolderPath"></div>
-            </div>
-            <div class="detail-files-list" id="detailFilesList"></div>
-          </div>
-        </div>
-
-        <!-- 课程作业 -->
-        <div class="detail-section">
-          <div class="detail-section-header">
-            <h4>📋 课程作业</h4>
-            <button type="button" class="detail-add-btn" onclick="openDetailAddHomework()">➕ 添加作业</button>
-          </div>
-          <div class="detail-homework-list" id="detailHomeworkList"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 添加作业模态框（课程详情用） -->
-  <div id="detailAddHomeworkModal" class="modal">
-    <div class="modal-content modal-content-sm">
-      <div class="modal-header">
-        <h3>添加作业</h3>
-        <button type="button" class="modal-close" onclick="closeDetailAddHomeworkModal()">&times;</button>
-      </div>
-      <form id="detailAddHomeworkForm" class="modal-form">
-        <input type="hidden" id="detailHomeworkCourseId">
-        <div class="form-group">
-          <label for="detailHomeworkTitle">作业标题 *</label>
-          <input type="text" id="detailHomeworkTitle" required placeholder="例如：第一章练习题">
-        </div>
-        <div class="form-group">
-          <label for="detailHomeworkDesc">作业描述</label>
-          <textarea id="detailHomeworkDesc" rows="3" placeholder="作业的具体要求..."></textarea>
-        </div>
-        <div class="form-group">
-          <label for="detailHomeworkDueDate">截止日期</label>
-          <input type="date" id="detailHomeworkDueDate">
-        </div>
-        <div class="form-actions">
-          <button type="button" class="course-btn-secondary" onclick="closeDetailAddHomeworkModal()">取消</button>
-          <button type="submit" class="course-btn">添加</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 页脚 -->
-  <footer class="footer">
-    <div class="container">
-      <p>mako's Learning · 2026</p>
-      <p class="footer-note">漫步于樱花之森下</p>
-    </div>
-  </footer>
-
-  <script src="courses.js?v=20260329"></script>
-  <script src="utils.js" defer></script>
-  <script src="script.js?v=20260329"></script>
-  <script>
-    // 初始化课程卡片
-    document.addEventListener('DOMContentLoaded', function() {
-      renderCourseCards('coursesGrid');
-      loadProfile();
-
-      // 添加课程按钮点击事件
-      document.getElementById('addCourseBtn').addEventListener('click', function() {
-        document.getElementById('addCourseModal').style.display = 'flex';
-      });
-
-      // 表单提交
-      document.getElementById('addCourseForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const courseData = {
-          name: document.getElementById('courseName').value,
-          icon: document.getElementById('courseIcon').value || '📚',
-          credit: parseInt(document.getElementById('courseCredit').value) || 3,
-          category: document.getElementById('courseCategory').value || '自定义',
-          status: document.getElementById('courseStatus').value,
-          description: document.getElementById('courseDesc').value
-        };
-        addUserCourse(courseData);
-        renderCourseCards('coursesGrid');
-        closeAddCourseModal();
-        this.reset();
-      });
-
-      // 点击模态框外部关闭
-      document.getElementById('addCourseModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-          closeAddCourseModal();
-        }
-      });
-
-      // 个人资料编辑
-      document.getElementById('editProfileForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveProfile();
-        closeProfileModal();
-      });
-
-      document.getElementById('avatarInput').addEventListener('change', handleAvatarUpload);
-
-      document.getElementById('editProfileModal').addEventListener('click', function(e) {
-        if (e.target === this) closeProfileModal();
-      });
-
-      // 编辑课程表单
-      document.getElementById('editCourseForm').addEventListener('submit', handleEditCourse);
-      document.getElementById('editCourseModal').addEventListener('click', function(e) {
-        if (e.target === this) closeEditCourseModal();
-      });
-
-      // 课程详情添加作业表单
-      document.getElementById('detailAddHomeworkForm').addEventListener('submit', handleDetailAddHomework);
-      document.getElementById('detailAddHomeworkModal').addEventListener('click', function(e) {
-        if (e.target === this) closeDetailAddHomeworkModal();
-      });
-    });
-
-    function closeAddCourseModal() {
-      document.getElementById('addCourseModal').style.display = 'none';
-    }
-
-    // ===== 个人资料功能 =====
-    const PROFILE_KEY = 'user_profile';
-    let cropCanvas, cropContext;
-    let imgSelection = { x: 0, y: 0, w: 80, h: 80 };
-    let isDragging = false;
-    let originalImage = null;
-
-    function loadProfile() {
-      const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
-      if (profile) {
-        if (profile.avatar) document.getElementById('profileAvatar').innerHTML = '<img src="' + profile.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
-        if (profile.name) document.getElementById('profileName').textContent = profile.name;
-        if (profile.nickname) document.getElementById('profileNickname').textContent = profile.nickname;
-        if (profile.bio) document.getElementById('profileBio').textContent = profile.bio;
-        if (profile.github) document.getElementById('profileGithub').href = profile.github;
-      }
-    }
-
-    function openProfileModal() {
-      const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
-      document.getElementById('avatarPreview').innerHTML = profile && profile.avatar ?
-        '<img src="' + profile.avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">' : '🌸';
-      document.getElementById('profileNameInput').value = profile && profile.name ? profile.name : '';
-      document.getElementById('profileNicknameInput').value = profile && profile.nickname ? profile.nickname : '';
-      document.getElementById('profileBioInput').value = profile && profile.bio ? profile.bio : '';
-      document.getElementById('profileGithubInput').value = profile && profile.github ? profile.github : '';
-      document.getElementById('cropContainer').style.display = 'none';
-      document.getElementById('editProfileModal').style.display = 'flex';
-    }
-
-    function closeProfileModal() {
-      document.getElementById('editProfileModal').style.display = 'none';
-    }
-
-    function saveProfile() {
-      const avatarEl = document.getElementById('avatarPreview').querySelector('img');
-      // Apply crop if available
-      let avatarSrc = null;
-      if (avatarEl && originalImage) {
-        avatarSrc = applyCrop();
-      } else if (avatarEl) {
-        avatarSrc = avatarEl.src;
-      }
-      const profile = {
-        avatar: avatarSrc,
-        name: document.getElementById('profileNameInput').value,
-        nickname: document.getElementById('profileNicknameInput').value,
-        bio: document.getElementById('profileBioInput').value,
-        github: document.getElementById('profileGithubInput').value
-      };
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-      loadProfile();
-      // Reset crop state
-      originalImage = null;
-    }
-
-    function handleAvatarUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const img = new Image();
-        img.onload = function() {
-          originalImage = img;
-          const canvas = document.getElementById('cropCanvas');
-          const maxSize = 200;
-          const scale = Math.min(maxSize / img.width, maxSize / img.height);
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          cropCanvas = canvas;
-          cropContext = canvas.getContext('2d');
-          cropContext.drawImage(img, 0, 0, canvas.width, canvas.height);
-          document.getElementById('cropContainer').style.display = 'block';
-          document.getElementById('avatarPreview').innerHTML = '<img src="' + evt.target.result + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
-          initCrop(img, canvas);
-        };
-        img.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function initCrop(img, canvas) {
-      const container = canvas.parentElement;
-      container.style.position = 'relative';
-
-      // Create overlay for selection
-      let overlay = container.querySelector('.crop-overlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'crop-overlay';
-        container.appendChild(overlay);
-      }
-      overlay.style.cssText = 'position:absolute;left:0;top:0;right:0;bottom:0;cursor:move;';
-
-      const rect = canvas.getBoundingClientRect();
-      const size = Math.min(rect.width, rect.height);
-      imgSelection = {
-        x: (rect.width - size) / 2,
-        y: (rect.height - size) / 2,
-        w: size,
-        h: size
-      };
-
-      let startX = 0, startY = 0;
-
-      function startDrag(e) {
-        e.preventDefault();
-        isDragging = true;
-        const pos = e.touches ? e.touches[0] : e;
-        startX = pos.clientX - rect.left;
-        startY = pos.clientY - rect.top;
-      }
-
-      function doDrag(e) {
-        if (!isDragging) return;
-        e.preventDefault();
-        const pos = e.touches ? e.touches[0] : e;
-        const x = pos.clientX - rect.left;
-        const y = pos.clientY - rect.top;
-        const dx = x - startX;
-        const dy = y - startY;
-        imgSelection.x = Math.max(0, Math.min(imgSelection.x + dx, rect.width - imgSelection.w));
-        imgSelection.y = Math.max(0, Math.min(imgSelection.y + dy, rect.height - imgSelection.h));
-        startX = x;
-        startY = y;
-        drawSelection();
-      }
-
-      function endDrag() { isDragging = false; }
-
-      overlay.onmousedown = startDrag;
-      overlay.onmousemove = doDrag;
-      overlay.onmouseup = endDrag;
-      overlay.ontouchstart = startDrag;
-      overlay.ontouchmove = doDrag;
-      overlay.ontouchend = endDrag;
-
-      drawSelection();
-    }
-
-    function drawSelection() {
-      if (!cropCanvas || !cropContext || !originalImage) return;
-      // Redraw full image
-      cropContext.drawImage(originalImage, 0, 0, cropCanvas.width, cropCanvas.height);
-      // Draw darkened overlay outside selection
-      cropContext.fillStyle = 'rgba(0,0,0,0.5)';
-      cropContext.fillRect(0, 0, cropCanvas.width, imgSelection.y);
-      cropContext.fillRect(0, imgSelection.y, imgSelection.x, imgSelection.h);
-      cropContext.fillRect(imgSelection.x + imgSelection.w, imgSelection.y, cropCanvas.width - imgSelection.x - imgSelection.w, imgSelection.h);
-      cropContext.fillRect(0, imgSelection.y + imgSelection.h, cropCanvas.width, cropCanvas.height - imgSelection.y - imgSelection.h);
-      // Draw selection border
-      cropContext.strokeStyle = '#FFB7C5';
-      cropContext.lineWidth = 2;
-      cropContext.strokeRect(imgSelection.x, imgSelection.y, imgSelection.w, imgSelection.h);
-    }
-
-    function applyCrop() {
-      if (!originalImage || !cropCanvas) return null;
-      const cropCanvas2 = document.createElement('canvas');
-      const size = Math.min(imgSelection.w, imgSelection.h);
-      cropCanvas2.width = size;
-      cropCanvas2.height = size;
-      const ctx = cropCanvas2.getContext('2d');
-      ctx.drawImage(originalImage,
-        imgSelection.x * (originalImage.width / cropCanvas.width),
-        imgSelection.y * (originalImage.height / cropCanvas.height),
-        size * (originalImage.width / cropCanvas.width),
-        size * (originalImage.height / cropCanvas.height),
-        0, 0, size, size);
-      return cropCanvas2.toDataURL('image/png');
-    }
-  </script>
 </body>
 </html>
