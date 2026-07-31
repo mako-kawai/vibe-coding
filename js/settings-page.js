@@ -1,12 +1,12 @@
-import { assetUrl, deleteAsset, getAssets, importState, loadState, putAsset, updateState } from './store.js';
+import { assetUrl, deleteAsset, getAsset, getAssets, importState, loadState, putAsset, updateState } from './store.js';
 import { createId } from './logic.js';
 import { applyTheme, applyVisualSettings, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
-import { cropImageFile } from './image-cropper.js';
+import { backgroundImageQuality, cropImageFile, selectBackgroundImage } from './image-cropper.js';
 
 const THEMES = [
-  { id: 'public', name: '原创 · 物理工作台', description: '燕园红、夜空蓝与原创校园实验室背景。', preview: 'assets/theme-public.png' },
-  { id: 'makura', name: '枕社风格', description: '夏日庭院、柔和青绿与文学感标题框。', preview: 'assets/theme-makura.png' },
-  { id: 'yuzusoft', name: '柚子社风格', description: '明亮柑橘、青空与现代校园窗口。', preview: 'assets/theme-yuzusoft.png' }
+  { id: 'public', name: '原创 · 物理工作台', description: '燕园红、夜空蓝与原创校园实验室背景。', preview: 'assets/theme-public.png', width: 1536, height: 1024 },
+  { id: 'makura', name: '枕社风格', description: '夏日庭院、柔和青绿与文学感标题框。', preview: 'assets/theme-makura.png', width: 1536, height: 1024 },
+  { id: 'yuzusoft', name: '柚子社风格', description: '明亮柑橘、青空与现代校园窗口。', preview: 'assets/theme-yuzusoft.png', width: 1536, height: 1024 }
 ];
 
 let pendingThemeId = null;
@@ -36,9 +36,18 @@ async function renderThemeCards() {
   const cards = await Promise.all(THEMES.map(async theme => {
     const selected = state.settings.theme === theme.id;
     const localAsset = state.settings.localThemeAssets?.[theme.id];
+    const localRecord = localAsset ? await getAsset(localAsset) : null;
+    const width = localRecord?.width || theme.width;
+    const height = localRecord?.height || theme.height;
+    const quality = localRecord?.width ? backgroundImageQuality(width, height) : localAsset ? { level: 'legacy', label: '旧版裁剪图' } : backgroundImageQuality(width, height);
     const card = node('article', { class: `theme-card${selected ? ' selected' : ''}` }, [
       node('div', { class: 'theme-preview', style: `background-image:url('${theme.preview}')` }, [selected ? node('span', { class: 'selected-chip', text: '使用中' }) : null]),
-      node('div', { class: 'theme-card-copy' }, [node('strong', { text: theme.name }), node('p', { text: theme.description }), localAsset ? node('span', { class: 'local-asset-label', text: '已导入本地背景' }) : null]),
+      node('div', { class: 'theme-card-copy' }, [
+        node('strong', { text: theme.name }),
+        node('p', { text: theme.description }),
+        node('span', { class: `image-quality ${quality.level}`, text: localRecord?.width ? `${width}×${height} · ${quality.label}` : localAsset ? '旧版背景 · 建议重新导入原图' : `${width}×${height} · ${quality.label}` }),
+        localAsset ? node('span', { class: 'local-asset-label', text: '本地背景' }) : null
+      ]),
       node('div', { class: 'theme-card-actions' })
     ]);
     if (localAsset) {
@@ -79,10 +88,11 @@ async function loadForm() {
   document.getElementById('gpaEnabled').checked = state.settings.gpaEnabled !== false;
   document.getElementById('gpaRule').value = state.settings.gpaRule || 'pku2019';
   document.getElementById('backupDays').value = String(state.settings.backupReminderDays || 7);
-  ['themeImageOpacity', 'themeImageSaturation', 'themeImageBrightness', 'sidebarImageOpacity', 'sidebarImageSaturation', 'sidebarImageBrightness'].forEach(id => {
+  ['themeImageOpacity', 'themeImageSaturation', 'themeImageBrightness', 'themeOverlayOpacity', 'sidebarImageOpacity', 'sidebarImageSaturation', 'sidebarImageBrightness'].forEach(id => {
     document.getElementById(id).value = state.settings[id];
     document.getElementById(`${id}Value`).value = `${state.settings[id]}%`;
   });
+  document.querySelectorAll('[data-background-mode]').forEach(button => button.classList.toggle('active', button.dataset.backgroundMode === state.settings.backgroundMode));
   document.getElementById('avatarPreview').querySelector('span').textContent = (state.profile.displayName || 'M').trim().charAt(0).toUpperCase() || 'M';
   const avatarUrl = state.profile.avatarAssetId ? await assetUrl(state.profile.avatarAssetId) : null;
   document.getElementById('avatarPreview').style.backgroundImage = avatarUrl ? `url("${avatarUrl}")` : '';
@@ -172,14 +182,20 @@ document.body.append(themeAssetInput);
 themeAssetInput.addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file || !pendingThemeId) return;
   if (file.size > 12 * 1024 * 1024) { toast('背景图片不能超过 12MB', 'error'); event.target.value = ''; return; }
-  const cropped = await cropImageFile(file, { title: '裁剪主题背景', aspectRatio: 16 / 9, outputWidth: 1600, outputHeight: 900 });
+  const selection = await selectBackgroundImage(file, { title: '调整桌面与手机背景焦点' });
   event.target.value = '';
-  if (!cropped) return;
+  if (!selection) return;
   const oldId = loadState().settings.localThemeAssets?.[pendingThemeId];
-  const record = await putAsset({ id: createId('theme'), kind: 'theme', themeId: pendingThemeId, data: cropped, mimeType: cropped.type, name: file.name });
+  const record = await putAsset({
+    id: createId('theme'), kind: 'theme', themeId: pendingThemeId,
+    data: selection.data, mimeType: selection.mimeType, name: file.name,
+    width: selection.width, height: selection.height, crop: selection.crop, preservesOriginal: true
+  });
   updateState(draft => { draft.settings.localThemeAssets[pendingThemeId] = record.id; });
   if (oldId) await deleteAsset(oldId);
-  await applyTheme(loadState().settings.theme); await renderThemeCards(); toast('本地背景已裁剪并导入', 'success');
+  const quality = backgroundImageQuality(selection.width, selection.height);
+  await applyTheme(loadState().settings.theme); await renderThemeCards();
+  toast(`已保留原图并导入 · ${quality.label}`, quality.level === 'low' ? 'info' : 'success');
 });
 
 document.getElementById('uploadAvatar').addEventListener('click', () => document.getElementById('avatarInput').click());
@@ -226,12 +242,20 @@ document.getElementById('removeSidebarImage').addEventListener('click', async ()
   await applyTheme(); await loadForm(); toast('侧栏背景已移除');
 });
 
-['themeImageOpacity', 'themeImageSaturation', 'themeImageBrightness', 'sidebarImageOpacity', 'sidebarImageSaturation', 'sidebarImageBrightness'].forEach(id => {
+['themeImageOpacity', 'themeImageSaturation', 'themeImageBrightness', 'themeOverlayOpacity', 'sidebarImageOpacity', 'sidebarImageSaturation', 'sidebarImageBrightness'].forEach(id => {
   document.getElementById(id).addEventListener('input', event => {
     const value = Number(event.target.value);
     document.getElementById(`${id}Value`).value = `${value}%`;
     const next = updateState(draft => { draft.settings[id] = value; });
     applyVisualSettings(next);
+  });
+});
+
+document.querySelectorAll('[data-background-mode]').forEach(button => {
+  button.addEventListener('click', () => {
+    const next = updateState(draft => { draft.settings.backgroundMode = button.dataset.backgroundMode; });
+    applyVisualSettings(next);
+    document.querySelectorAll('[data-background-mode]').forEach(item => item.classList.toggle('active', item === button));
   });
 });
 

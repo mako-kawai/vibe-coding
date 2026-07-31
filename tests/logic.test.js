@@ -5,7 +5,7 @@ import {
   mergeState, migrateLegacyTasks, parseGradeCsv, parseNoteMarkdown,
   parsePkuGradeText, serializeNoteMarkdown
 } from '../js/logic.js';
-import { cropPlacement } from '../js/image-cropper.js';
+import { backgroundImageQuality, cropPlacement } from '../js/image-cropper.js';
 
 test('legacy homework and mirrored todo migrate into one task', () => {
   const tasks = migrateLegacyTasks(
@@ -103,6 +103,14 @@ test('image crop placement covers the target canvas at every zoom', () => {
   assert.ok(placement.height >= 1500);
   assert.ok(placement.x <= 0);
   assert.ok(placement.y <= 0);
+});
+
+test('background image quality uses the effective 16:9 crop resolution', () => {
+  assert.equal(backgroundImageQuality(3840, 2160).level, 'excellent');
+  assert.equal(backgroundImageQuality(2560, 1600).level, 'good');
+  assert.equal(backgroundImageQuality(1920, 1080).level, 'fair');
+  assert.equal(backgroundImageQuality(1600, 900).level, 'low');
+  assert.equal(backgroundImageQuality(2160, 3840).level, 'fair');
 });
 
 test('state merge updates matching IDs without duplicating schedule UIDs', () => {

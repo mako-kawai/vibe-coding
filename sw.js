@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'mako-learning-static-';
-const CACHE_NAME = `${CACHE_PREFIX}v2-20260731-r2`;
+const CACHE_NAME = `${CACHE_PREFIX}v2-20260731-r3`;
 
 const CORE_FILES = [
   './', './index.html', './tasks.html', './courses.html', './notes.html',

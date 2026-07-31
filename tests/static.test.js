@@ -33,3 +33,19 @@ test('grade page exposes paste and plain-text file import controls', async () =>
   assert.match(html, /id="gradeTextInput"[^>]*\.txt/);
   assert.match(html, /id="loadGradeTextFile"/);
 });
+
+test('theme settings expose clarity, reading mask and responsive crop controls', async () => {
+  const html = await readFile(resolve(root, 'settings.html'), 'utf8');
+  const cropper = await readFile(resolve(root, 'js/image-cropper.js'), 'utf8');
+  assert.match(html, /data-background-mode="clear"/);
+  assert.match(html, /id="themeOverlayOpacity"/);
+  assert.match(cropper, /data-crop-view/);
+  assert.match(cropper, /preserve|selectBackgroundImage/);
+});
+
+test('clear background mode does not blur the full-page overlay by default', async () => {
+  const css = await readFile(resolve(root, 'styles.css'), 'utf8');
+  assert.match(css, /data-background-mode="soft"[^}]+backdrop-filter:\s*blur\(3px\)/);
+  const baseOverlay = css.match(/body::after\s*\{([\s\S]*?)\}/)?.[1] || '';
+  assert.doesNotMatch(baseOverlay, /backdrop-filter/);
+});

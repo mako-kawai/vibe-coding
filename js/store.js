@@ -32,6 +32,7 @@ export function createDefaultState() {
       theme: 'public', gpaEnabled: true, gpaRule: 'pku2019', reduceMotion: false,
       backupReminderDays: 7, localThemeAssets: {}, migratedFromV1: false,
       themeImageOpacity: 100, themeImageSaturation: 82, themeImageBrightness: 100,
+      themeOverlayOpacity: 74, backgroundMode: 'clear',
       sidebarImageAssetId: null, sidebarImageOpacity: 42,
       sidebarImageSaturation: 85, sidebarImageBrightness: 72
     },

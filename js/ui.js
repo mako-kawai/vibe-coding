@@ -1,4 +1,4 @@
-import { assetUrl, loadState, migrateLegacyNotes, updateState } from './store.js';
+import { assetUrl, getAsset, loadState, migrateLegacyNotes, updateState } from './store.js';
 
 const NAV_ITEMS = [
   { id: 'dashboard', href: 'index.html', icon: 'layout-dashboard', label: '总览' },
@@ -124,6 +124,10 @@ export function applyVisualSettings(state = loadState()) {
   document.documentElement.style.setProperty('--theme-image-opacity', String((Number(settings.themeImageOpacity) || 100) / 100));
   document.documentElement.style.setProperty('--theme-image-saturation', `${Number(settings.themeImageSaturation) || 0}%`);
   document.documentElement.style.setProperty('--theme-image-brightness', `${Number(settings.themeImageBrightness) || 100}%`);
+  const overlay = Math.min(0.92, Math.max(0.3, (Number(settings.themeOverlayOpacity) || 74) / 100));
+  document.documentElement.style.setProperty('--theme-overlay-opacity', String(overlay));
+  document.documentElement.style.setProperty('--theme-overlay-strong', String(Math.min(0.98, overlay + 0.16)));
+  document.documentElement.dataset.backgroundMode = settings.backgroundMode === 'soft' ? 'soft' : 'clear';
   document.documentElement.style.setProperty('--sidebar-image-opacity', String((Number(settings.sidebarImageOpacity) || 0) / 100));
   document.documentElement.style.setProperty('--sidebar-image-saturation', `${Number(settings.sidebarImageSaturation) || 0}%`);
   document.documentElement.style.setProperty('--sidebar-image-brightness', `${Number(settings.sidebarImageBrightness) || 100}%`);
@@ -134,8 +138,10 @@ export async function applyTheme(theme = loadState().settings.theme) {
   document.documentElement.dataset.theme = theme;
   document.documentElement.classList.toggle('reduce-motion', Boolean(state.settings.reduceMotion));
   applyVisualSettings(state);
-  const [themeUrl, sidebarUrl, avatarUrl] = await Promise.all([
-    state.settings.localThemeAssets?.[theme] ? assetUrl(state.settings.localThemeAssets[theme]) : null,
+  const themeAssetId = state.settings.localThemeAssets?.[theme];
+  const [themeRecord, themeUrl, sidebarUrl, avatarUrl] = await Promise.all([
+    themeAssetId ? getAsset(themeAssetId) : null,
+    themeAssetId ? assetUrl(themeAssetId) : null,
     state.settings.sidebarImageAssetId ? assetUrl(state.settings.sidebarImageAssetId) : null,
     state.profile.avatarAssetId ? assetUrl(state.profile.avatarAssetId) : null
   ]);
@@ -145,6 +151,12 @@ export async function applyTheme(theme = loadState().settings.theme) {
   else document.documentElement.style.removeProperty('--sidebar-image');
   if (avatarUrl) document.documentElement.style.setProperty('--profile-avatar', `url("${avatarUrl}")`);
   else document.documentElement.style.removeProperty('--profile-avatar');
+  const desktopCrop = themeRecord?.crop?.desktop || {};
+  const mobileCrop = themeRecord?.crop?.mobile || desktopCrop;
+  document.documentElement.style.setProperty('--theme-image-position-desktop', `${Number(desktopCrop.positionX ?? 50)}% ${Number(desktopCrop.positionY ?? 50)}%`);
+  document.documentElement.style.setProperty('--theme-image-position-mobile', `${Number(mobileCrop.positionX ?? 50)}% ${Number(mobileCrop.positionY ?? 50)}%`);
+  document.documentElement.style.setProperty('--theme-image-zoom-desktop', String(Math.max(1, Number(desktopCrop.zoom) || 1)));
+  document.documentElement.style.setProperty('--theme-image-zoom-mobile', String(Math.max(1, Number(mobileCrop.zoom) || 1)));
   document.documentElement.classList.toggle('has-profile-avatar', Boolean(avatarUrl));
   document.querySelectorAll('.theme-dot').forEach(button => button.classList.toggle('selected', button.dataset.theme === theme));
 }
