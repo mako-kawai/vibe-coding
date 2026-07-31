@@ -210,6 +210,140 @@ export function parseGradeCsv(text) {
   return { records, errors };
 }
 
+const PKU_TERM_PATTERN = /(?:20)?(\d{2})\s*[-—–至]\s*(?:20)?(\d{2})\s*学年度\s*第?\s*([123])\s*学期/i;
+const COURSE_CATEGORY_PATTERN = /(?:专业必修|专业选修|全校必修|全校任选|全校任选课|通选课|任选|必修|限选|公选|辅修|双学位)/g;
+const PORTAL_GRADE_PATTERN = /(?:^|\s)(100(?:\.0+)?|(?:\d{1,2})(?:\.\d+)?|合格|不合格|通过|未通过|P|NP|EX|IP|I|W|F)(?=\s|$)/gi;
+
+function normalizePkuTerm(match) {
+  return `20${match[1]}-20${match[2]} 学年度第${match[3]}学期`;
+}
+
+function normalizePortalGrade(raw) {
+  const value = String(raw || '').trim().toUpperCase();
+  if (/^\d+(?:\.\d+)?$/.test(value)) {
+    const score = Number(value);
+    return score >= 0 && score <= 100 ? { gradingMode: 'percentage', value: score, status: '' } : null;
+  }
+  if (['合格', '通过', 'P'].includes(value)) return { gradingMode: 'pass_fail', value: 'P', status: 'P' };
+  if (['不合格', '未通过', 'NP'].includes(value)) return { gradingMode: 'pass_fail', value: 'NP', status: 'NP' };
+  if (['EX', 'IP', 'I', 'W'].includes(value)) return { gradingMode: 'pass_fail', value, status: value };
+  if (value === 'F') return { gradingMode: 'letter', value, status: value };
+  return null;
+}
+
+function parsePortalRow(row, term, rowNumber, errors) {
+  let source = row.parts.join(' ').replace(/\s+/g, ' ').trim();
+  source = source.replace(/学分/g, ' ').replace(COURSE_CATEGORY_PATTERN, ' ').replace(/\s+/g, ' ').trim();
+  const gradeMatches = [...source.matchAll(PORTAL_GRADE_PATTERN)];
+  const gradeMatch = gradeMatches.at(-1);
+  if (!gradeMatch) {
+    if (source) errors.push(`第 ${rowNumber} 组未识别到成绩：${source}`);
+    return null;
+  }
+  const grade = normalizePortalGrade(gradeMatch[1]);
+  const matchStart = gradeMatch.index + (gradeMatch[0].startsWith(' ') ? 1 : 0);
+  const courseName = `${source.slice(0, matchStart)} ${source.slice(matchStart + gradeMatch[1].length)}`
+    .replace(/^[·:：,，\-\s]+|[·:：,，\-\s]+$/g, '').replace(/\s+/g, ' ').trim();
+  if (!courseName) {
+    errors.push(`第 ${rowNumber} 组缺少课程名称`);
+    return null;
+  }
+  return {
+    courseCode: '', courseName, term: term || '', credits: row.credits,
+    ...grade, source: 'pku-portal-text'
+  };
+}
+
+export function parsePkuGradeText(text) {
+  const source = String(text || '')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\u00A0/g, ' ')
+    .replace(new RegExp(`(${PKU_TERM_PATTERN.source})`, 'gi'), '\n$1\n');
+  const lines = source.split(/\r?\n/).map(line => line.replace(/[\t ]+/g, ' ').trim()).filter(Boolean);
+  const records = [];
+  const errors = [];
+  const warnings = [];
+  let term = '';
+  let row = null;
+  let rowNumber = 0;
+
+  const finishRow = () => {
+    if (!row) return;
+    const parsed = parsePortalRow(row, term, rowNumber, errors);
+    if (parsed) records.push(parsed);
+    row = null;
+  };
+
+  lines.forEach(line => {
+    const termMatch = line.match(PKU_TERM_PATTERN);
+    if (termMatch) {
+      finishRow();
+      term = normalizePkuTerm(termMatch);
+      return;
+    }
+    if (/^(?:总学分|学分合计|平均成绩|绩点|GPA)\b/i.test(line)) return;
+
+    const creditOnly = line.match(/^(\d+(?:\.\d+)?)\s*学分$/);
+    const creditWithRest = line.match(/^(\d+(?:\.\d+)?)\s*(?:学分\s*)?(.+)$/);
+    const numericOnly = line.match(/^(\d+(?:\.\d+)?)$/);
+    const credit = creditOnly ? Number(creditOnly[1])
+      : creditWithRest && Number(creditWithRest[1]) <= 30 ? Number(creditWithRest[1])
+        : numericOnly && Number(numericOnly[1]) <= 30 ? Number(numericOnly[1]) : null;
+
+    if (row && numericOnly && credit !== null) {
+      const currentGrades = [...row.parts.join(' ').matchAll(PORTAL_GRADE_PATTERN)]
+        .map(match => normalizePortalGrade(match[1])).filter(Boolean);
+      if (!currentGrades.length) {
+        row.parts.push(line);
+        return;
+      }
+    }
+
+    if (credit !== null && credit > 0) {
+      finishRow();
+      rowNumber += 1;
+      const remainder = creditWithRest?.[2] || '';
+      row = { credits: credit, parts: remainder ? [remainder] : [] };
+      return;
+    }
+    if (row) row.parts.push(line);
+  });
+  finishRow();
+
+  const unique = new Map();
+  records.forEach(record => unique.set(`${record.term}|${record.courseName}`, record));
+  if (!term && records.length) warnings.push('未识别到学期标题，请在导入后检查学期字段。');
+  if (!records.length && !errors.length) errors.push('没有识别到课程。请从教务成绩页复制包含“学分、课程名、成绩”的文本。');
+  return { records: [...unique.values()], errors, warnings };
+}
+
+export function serializeNoteMarkdown(note, content, course = null) {
+  const metadata = {
+    version: 1,
+    title: note.title || '未命名笔记',
+    courseId: note.courseId || null,
+    courseName: course?.name || '',
+    chapter: note.chapter || '',
+    tags: Array.isArray(note.tags) ? note.tags : [],
+    exportedAt: new Date().toISOString()
+  };
+  return `<!-- mako-note-meta: ${JSON.stringify(metadata)} -->\n\n${String(content || '')}`;
+}
+
+export function parseNoteMarkdown(text, filename = '导入笔记.md') {
+  const source = String(text || '').replace(/^\uFEFF/, '');
+  const match = source.match(/^\s*<!--\s*mako-note-meta:\s*({[\s\S]*?})\s*-->\s*/);
+  let metadata = {};
+  if (match) {
+    try { metadata = JSON.parse(match[1]); } catch { metadata = {}; }
+  }
+  return {
+    metadata,
+    title: String(metadata.title || filename.replace(/\.md$/i, '') || '导入笔记').trim(),
+    content: match ? source.slice(match[0].length) : source
+  };
+}
+
 function legacyTaskFromHomework(homework) {
   return {
     id: homework.id || createId('task'),

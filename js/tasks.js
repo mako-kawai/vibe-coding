@@ -182,6 +182,10 @@ function render() {
   const stats = taskStats(tasks);
   document.getElementById('taskSummary').textContent = `${tasks.length} 个任务 · ${stats.overdue} 个逾期`;
   document.getElementById('workloadSummary').textContent = `预计 ${(stats.estimatedMinutes / 60).toFixed(1)} 小时`;
+  const completedCount = state.tasks.filter(task => task.status === 'done').length;
+  const clearButton = document.getElementById('deleteCompletedButton');
+  clearButton.classList.toggle('hidden', completedCount === 0);
+  clearButton.lastChild.textContent = `清空已完成 (${completedCount})`;
   const list = document.getElementById('taskList');
   list.replaceChildren(...(tasks.length ? tasks.map(task => taskRow(task, state)) : [node('div', { class: 'empty-state' }, [icon('list-checks'), node('h2', { text: '没有符合筛选条件的任务' }), node('p', { text: '清空筛选或新建任务。' })])]));
   refreshIcons();
@@ -220,6 +224,19 @@ document.getElementById('deleteTaskButton').addEventListener('click', () => {
   updateState(draft => { draft.tasks = draft.tasks.filter(task => task.id !== editingId); });
   updateState(draft => { if (draft.focusSession?.taskId === editingId) draft.focusSession = null; });
   document.getElementById('taskDialog').close(); render(); toast('任务已删除');
+});
+
+document.getElementById('deleteCompletedButton').addEventListener('click', () => {
+  const state = loadState();
+  const completed = state.tasks.filter(task => task.status === 'done');
+  if (!completed.length || !confirm(`确定删除全部 ${completed.length} 个已完成任务？此操作不能撤销。`)) return;
+  const deletedIds = new Set(completed.map(task => task.id));
+  updateState(draft => {
+    draft.tasks = draft.tasks.filter(task => !deletedIds.has(task.id));
+    if (draft.focusSession && deletedIds.has(draft.focusSession.taskId)) draft.focusSession = null;
+  });
+  render();
+  toast(`已删除 ${completed.length} 个已完成任务`, 'success');
 });
 
 document.getElementById('addTaskButton').addEventListener('click', () => openTask());

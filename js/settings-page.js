@@ -1,6 +1,7 @@
-import { deleteAsset, getAssets, importState, loadState, putAsset, updateState } from './store.js';
+import { assetUrl, deleteAsset, getAssets, importState, loadState, putAsset, updateState } from './store.js';
 import { createId } from './logic.js';
-import { applyTheme, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
+import { applyTheme, applyVisualSettings, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
+import { cropImageFile } from './image-cropper.js';
 
 const THEMES = [
   { id: 'public', name: '原创 · 物理工作台', description: '燕园红、夜空蓝与原创校园实验室背景。', preview: 'assets/theme-public.png' },
@@ -29,10 +30,10 @@ async function buildBackupBlob(state = loadState(), records = null) {
   return zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
 }
 
-function renderThemeCards() {
+async function renderThemeCards() {
   const state = loadState();
   const container = document.getElementById('themeCards');
-  container.replaceChildren(...THEMES.map(theme => {
+  const cards = await Promise.all(THEMES.map(async theme => {
     const selected = state.settings.theme === theme.id;
     const localAsset = state.settings.localThemeAssets?.[theme.id];
     const card = node('article', { class: `theme-card${selected ? ' selected' : ''}` }, [
@@ -40,10 +41,14 @@ function renderThemeCards() {
       node('div', { class: 'theme-card-copy' }, [node('strong', { text: theme.name }), node('p', { text: theme.description }), localAsset ? node('span', { class: 'local-asset-label', text: '已导入本地背景' }) : null]),
       node('div', { class: 'theme-card-actions' })
     ]);
+    if (localAsset) {
+      const localUrl = await assetUrl(localAsset);
+      if (localUrl) card.querySelector('.theme-preview').style.backgroundImage = `url("${localUrl}")`;
+    }
     const actions = card.querySelector('.theme-card-actions');
     const select = node('button', { class: selected ? 'secondary-action' : 'primary-action', type: 'button' }, [icon('palette'), node('span', { text: selected ? '当前主题' : '使用主题' })]);
     select.disabled = selected;
-    select.addEventListener('click', () => { updateState(draft => { draft.settings.theme = theme.id; }); applyTheme(theme.id); renderThemeCards(); });
+    select.addEventListener('click', async () => { updateState(draft => { draft.settings.theme = theme.id; }); await applyTheme(theme.id); await renderThemeCards(); });
     const upload = node('button', { class: 'icon-btn', type: 'button', title: '导入本地背景', 'aria-label': `为${theme.name}导入背景` }, [icon('image-up')]);
     upload.addEventListener('click', () => { pendingThemeId = theme.id; document.getElementById('themeAssetInput').click(); });
     actions.append(select, upload);
@@ -52,12 +57,13 @@ function renderThemeCards() {
       remove.addEventListener('click', async () => {
         await deleteAsset(localAsset);
         updateState(draft => { delete draft.settings.localThemeAssets[theme.id]; });
-        await applyTheme(theme.id); renderThemeCards(); toast('已恢复原创背景');
+        await applyTheme(theme.id); await renderThemeCards(); toast('已恢复原创背景');
       });
       actions.append(remove);
     }
     return card;
   }));
+  container.replaceChildren(...cards);
   refreshIcons();
 }
 
@@ -73,6 +79,19 @@ async function loadForm() {
   document.getElementById('gpaEnabled').checked = state.settings.gpaEnabled !== false;
   document.getElementById('gpaRule').value = state.settings.gpaRule || 'pku2019';
   document.getElementById('backupDays').value = String(state.settings.backupReminderDays || 7);
+  ['themeImageOpacity', 'themeImageSaturation', 'themeImageBrightness', 'sidebarImageOpacity', 'sidebarImageSaturation', 'sidebarImageBrightness'].forEach(id => {
+    document.getElementById(id).value = state.settings[id];
+    document.getElementById(`${id}Value`).value = `${state.settings[id]}%`;
+  });
+  document.getElementById('avatarPreview').querySelector('span').textContent = (state.profile.displayName || 'M').trim().charAt(0).toUpperCase() || 'M';
+  const avatarUrl = state.profile.avatarAssetId ? await assetUrl(state.profile.avatarAssetId) : null;
+  document.getElementById('avatarPreview').style.backgroundImage = avatarUrl ? `url("${avatarUrl}")` : '';
+  document.getElementById('avatarPreview').classList.toggle('has-image', Boolean(avatarUrl));
+  document.getElementById('removeAvatar').classList.toggle('hidden', !state.profile.avatarAssetId);
+  const sidebarUrl = state.settings.sidebarImageAssetId ? await assetUrl(state.settings.sidebarImageAssetId) : null;
+  document.getElementById('sidebarImagePreview').style.backgroundImage = sidebarUrl ? `url("${sidebarUrl}")` : '';
+  document.getElementById('sidebarImagePreview').classList.toggle('has-image', Boolean(sidebarUrl));
+  document.getElementById('removeSidebarImage').classList.toggle('hidden', !state.settings.sidebarImageAssetId);
   document.getElementById('lastBackup').textContent = state.lastBackupAt ? `最近备份：${new Date(state.lastBackupAt).toLocaleString('zh-CN')}` : '还没有导出过完整备份。';
   const snapshots = (await getAssets('snapshot')).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   document.getElementById('restoreSnapshot').classList.toggle('hidden', snapshots.length === 0);
@@ -133,7 +152,7 @@ async function performRestore(mode) {
   } catch (error) { toast(`恢复失败：${error.message}`, 'error'); }
 }
 
-document.getElementById('profileForm').addEventListener('submit', event => {
+document.getElementById('profileForm').addEventListener('submit', async event => {
   event.preventDefault();
   updateState(draft => {
     draft.profile.displayName = document.getElementById('displayName').value.trim();
@@ -143,6 +162,8 @@ document.getElementById('profileForm').addEventListener('submit', event => {
     draft.semester.startDate = document.getElementById('semesterStart').value;
     draft.semester.totalWeeks = Number(document.getElementById('semesterWeeks').value) || 18;
   });
+  await applyTheme();
+  await loadForm();
   toast('个人与学期设置已保存', 'success');
 });
 
@@ -150,12 +171,68 @@ const themeAssetInput = node('input', { id: 'themeAssetInput', class: 'visually-
 document.body.append(themeAssetInput);
 themeAssetInput.addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file || !pendingThemeId) return;
-  if (file.size > 12 * 1024 * 1024) { toast('背景图片不能超过 12MB', 'error'); return; }
+  if (file.size > 12 * 1024 * 1024) { toast('背景图片不能超过 12MB', 'error'); event.target.value = ''; return; }
+  const cropped = await cropImageFile(file, { title: '裁剪主题背景', aspectRatio: 16 / 9, outputWidth: 1600, outputHeight: 900 });
+  event.target.value = '';
+  if (!cropped) return;
   const oldId = loadState().settings.localThemeAssets?.[pendingThemeId];
-  const record = await putAsset({ id: createId('theme'), kind: 'theme', themeId: pendingThemeId, data: file, mimeType: file.type, name: file.name });
+  const record = await putAsset({ id: createId('theme'), kind: 'theme', themeId: pendingThemeId, data: cropped, mimeType: cropped.type, name: file.name });
   updateState(draft => { draft.settings.localThemeAssets[pendingThemeId] = record.id; });
   if (oldId) await deleteAsset(oldId);
-  await applyTheme(loadState().settings.theme); renderThemeCards(); toast('本地背景已导入', 'success'); event.target.value = '';
+  await applyTheme(loadState().settings.theme); await renderThemeCards(); toast('本地背景已裁剪并导入', 'success');
+});
+
+document.getElementById('uploadAvatar').addEventListener('click', () => document.getElementById('avatarInput').click());
+document.getElementById('avatarInput').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 12 * 1024 * 1024) { toast('头像图片不能超过 12MB', 'error'); event.target.value = ''; return; }
+  const cropped = await cropImageFile(file, { title: '裁剪个人头像', aspectRatio: 1, outputWidth: 512, outputHeight: 512, shape: 'circle', previewWidth: 460 });
+  event.target.value = '';
+  if (!cropped) return;
+  const oldId = loadState().profile.avatarAssetId;
+  const record = await putAsset({ id: createId('avatar'), kind: 'avatar', data: cropped, mimeType: cropped.type, name: file.name });
+  updateState(draft => { draft.profile.avatarAssetId = record.id; });
+  if (oldId) await deleteAsset(oldId);
+  await applyTheme(); await loadForm(); toast('头像已更新', 'success');
+});
+
+document.getElementById('removeAvatar').addEventListener('click', async () => {
+  const id = loadState().profile.avatarAssetId;
+  if (id) await deleteAsset(id);
+  updateState(draft => { draft.profile.avatarAssetId = null; });
+  await applyTheme(); await loadForm(); toast('头像已移除');
+});
+
+document.getElementById('uploadSidebarImage').addEventListener('click', () => document.getElementById('sidebarImageInput').click());
+document.getElementById('sidebarImageInput').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 12 * 1024 * 1024) { toast('侧栏图片不能超过 12MB', 'error'); event.target.value = ''; return; }
+  const cropped = await cropImageFile(file, { title: '裁剪左侧菜单背景', aspectRatio: 2 / 5, outputWidth: 600, outputHeight: 1500, previewWidth: 260 });
+  event.target.value = '';
+  if (!cropped) return;
+  const oldId = loadState().settings.sidebarImageAssetId;
+  const record = await putAsset({ id: createId('sidebar'), kind: 'sidebar', data: cropped, mimeType: cropped.type, name: file.name });
+  updateState(draft => { draft.settings.sidebarImageAssetId = record.id; });
+  if (oldId) await deleteAsset(oldId);
+  await applyTheme(); await loadForm(); toast('侧栏背景已更新', 'success');
+});
+
+document.getElementById('removeSidebarImage').addEventListener('click', async () => {
+  const id = loadState().settings.sidebarImageAssetId;
+  if (id) await deleteAsset(id);
+  updateState(draft => { draft.settings.sidebarImageAssetId = null; });
+  await applyTheme(); await loadForm(); toast('侧栏背景已移除');
+});
+
+['themeImageOpacity', 'themeImageSaturation', 'themeImageBrightness', 'sidebarImageOpacity', 'sidebarImageSaturation', 'sidebarImageBrightness'].forEach(id => {
+  document.getElementById(id).addEventListener('input', event => {
+    const value = Number(event.target.value);
+    document.getElementById(`${id}Value`).value = `${value}%`;
+    const next = updateState(draft => { draft.settings[id] = value; });
+    applyVisualSettings(next);
+  });
 });
 
 document.getElementById('reduceMotion').addEventListener('change', event => { updateState(draft => { draft.settings.reduceMotion = event.target.checked; }); applyTheme(); });
@@ -183,4 +260,4 @@ document.getElementById('backupInput').addEventListener('change', async event =>
 document.getElementById('mergeBackup').addEventListener('click', () => performRestore('merge'));
 document.getElementById('replaceBackup').addEventListener('click', () => { if (confirm('替换会清除当前 V2 数据与本地文件。已自动创建状态快照，确定继续？')) performRestore('replace'); });
 
-await initApp('settings'); await loadForm(); renderThemeCards(); refreshIcons();
+await initApp('settings'); await loadForm(); await renderThemeCards(); refreshIcons();

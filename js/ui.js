@@ -33,9 +33,10 @@ export function refreshIcons() {
 }
 
 function renderShell(page) {
+  const state = loadState();
   const sidebar = node('aside', { class: 'app-sidebar' });
   const brand = node('a', { class: 'brand', href: 'index.html', 'aria-label': 'mako learning 总览' }, [
-    node('span', { class: 'brand-mark', text: 'M' }),
+    node('span', { class: 'brand-mark', text: (state.profile.displayName || 'M').trim().charAt(0).toUpperCase() || 'M' }),
     node('span', { class: 'brand-copy' }, [
       node('strong', { text: "mako's learning" }),
       node('small', { text: 'PHYSICS WORKSPACE' })
@@ -118,17 +119,33 @@ function ensureGlobalSearch() {
   document.body.append(dialog);
 }
 
+export function applyVisualSettings(state = loadState()) {
+  const settings = state.settings || {};
+  document.documentElement.style.setProperty('--theme-image-opacity', String((Number(settings.themeImageOpacity) || 100) / 100));
+  document.documentElement.style.setProperty('--theme-image-saturation', `${Number(settings.themeImageSaturation) || 0}%`);
+  document.documentElement.style.setProperty('--theme-image-brightness', `${Number(settings.themeImageBrightness) || 100}%`);
+  document.documentElement.style.setProperty('--sidebar-image-opacity', String((Number(settings.sidebarImageOpacity) || 0) / 100));
+  document.documentElement.style.setProperty('--sidebar-image-saturation', `${Number(settings.sidebarImageSaturation) || 0}%`);
+  document.documentElement.style.setProperty('--sidebar-image-brightness', `${Number(settings.sidebarImageBrightness) || 100}%`);
+}
+
 export async function applyTheme(theme = loadState().settings.theme) {
   const state = loadState();
   document.documentElement.dataset.theme = theme;
   document.documentElement.classList.toggle('reduce-motion', Boolean(state.settings.reduceMotion));
-  const assetId = state.settings.localThemeAssets?.[theme];
-  if (assetId) {
-    const url = await assetUrl(assetId);
-    if (url) document.documentElement.style.setProperty('--local-theme-image', `url("${url}")`);
-  } else {
-    document.documentElement.style.removeProperty('--local-theme-image');
-  }
+  applyVisualSettings(state);
+  const [themeUrl, sidebarUrl, avatarUrl] = await Promise.all([
+    state.settings.localThemeAssets?.[theme] ? assetUrl(state.settings.localThemeAssets[theme]) : null,
+    state.settings.sidebarImageAssetId ? assetUrl(state.settings.sidebarImageAssetId) : null,
+    state.profile.avatarAssetId ? assetUrl(state.profile.avatarAssetId) : null
+  ]);
+  if (themeUrl) document.documentElement.style.setProperty('--local-theme-image', `url("${themeUrl}")`);
+  else document.documentElement.style.removeProperty('--local-theme-image');
+  if (sidebarUrl) document.documentElement.style.setProperty('--sidebar-image', `url("${sidebarUrl}")`);
+  else document.documentElement.style.removeProperty('--sidebar-image');
+  if (avatarUrl) document.documentElement.style.setProperty('--profile-avatar', `url("${avatarUrl}")`);
+  else document.documentElement.style.removeProperty('--profile-avatar');
+  document.documentElement.classList.toggle('has-profile-avatar', Boolean(avatarUrl));
   document.querySelectorAll('.theme-dot').forEach(button => button.classList.toggle('selected', button.dataset.theme === theme));
 }
 

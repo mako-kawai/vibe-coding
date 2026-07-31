@@ -1,5 +1,5 @@
 import { assetUrl, deleteAsset, getAsset, getAssets, loadState, putAsset, updateState } from './store.js';
-import { createId } from './logic.js';
+import { createId, parseNoteMarkdown, serializeNoteMarkdown } from './logic.js';
 import { fillCourseOptions, icon, initApp, node, refreshIcons, toast } from './ui.js';
 
 const DERIVATION_TEMPLATE = `# 推导目标
@@ -123,6 +123,7 @@ async function selectNote(id) {
   document.getElementById('noteChapter').value = note.chapter || '';
   document.getElementById('noteTags').value = (note.tags || []).join(', ');
   document.getElementById('noteContent').value = content;
+  document.getElementById('exportNoteButton').disabled = false;
   renderMarkdown(content);
   dirty = false;
   updateStatus(); renderList(); await renderAttachments(); refreshIcons();
@@ -177,6 +178,69 @@ function createNote() {
   contentCache.set(id, ''); selectNote(id);
 }
 
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+  const link = node('a', { href: URL.createObjectURL(blob), download: filename });
+  document.body.append(link);
+  link.click();
+  const url = link.href;
+  setTimeout(() => { URL.revokeObjectURL(url); link.remove(); }, 1000);
+}
+
+function safeNoteFilename(title) {
+  return `${String(title || '未命名笔记').replace(/[\\/:*?"<>|]/g, '_').slice(0, 80)}.md`;
+}
+
+document.getElementById('importNoteButton').addEventListener('click', () => document.getElementById('noteImportInput').click());
+document.getElementById('noteImportInput').addEventListener('change', async event => {
+  const files = [...event.target.files];
+  if (!files.length) return;
+  const state = loadState();
+  const selectedCourseId = document.getElementById('noteCourseFilter').value;
+  let firstImportedId = null;
+  let importedCount = 0;
+  for (const file of files) {
+    if (file.size > 5 * 1024 * 1024) { toast(`${file.name} 超过 5 MB，已跳过`, 'error'); continue; }
+    const parsed = parseNoteMarkdown(await file.text(), file.name);
+    const metadata = parsed.metadata || {};
+    const course = state.courses.find(item => item.id === metadata.courseId)
+      || state.courses.find(item => metadata.courseName && item.name === metadata.courseName)
+      || state.courses.find(item => item.id === selectedCourseId)
+      || state.courses.find(item => item.status === 'active');
+    const id = createId('note');
+    updateState(draft => draft.notes.push({
+      id, courseId: course?.id || null, title: parsed.title,
+      chapter: String(metadata.chapter || ''),
+      tags: Array.isArray(metadata.tags) ? metadata.tags : [],
+      updatedAt: new Date().toISOString()
+    }));
+    await putAsset({ id: `note_${id}`, kind: 'note', noteId: id, data: parsed.content, mimeType: 'text/markdown' });
+    contentCache.set(id, parsed.content);
+    firstImportedId ||= id;
+    importedCount += 1;
+  }
+  event.target.value = '';
+  renderList();
+  if (firstImportedId) await selectNote(firstImportedId);
+  if (importedCount) toast(`已导入 ${importedCount} 个 Markdown 文件`, 'success');
+});
+
+document.getElementById('exportNoteButton').addEventListener('click', () => {
+  if (!currentId) return;
+  const state = loadState();
+  const stored = state.notes.find(item => item.id === currentId);
+  if (!stored) return;
+  const note = {
+    ...stored,
+    title: document.getElementById('noteTitle').value.trim() || stored.title,
+    chapter: document.getElementById('noteChapter').value.trim(),
+    tags: document.getElementById('noteTags').value.split(',').map(value => value.trim()).filter(Boolean)
+  };
+  const course = state.courses.find(item => item.id === note.courseId);
+  downloadText(safeNoteFilename(note.title), serializeNoteMarkdown(note, document.getElementById('noteContent').value, course));
+  toast('Markdown 笔记已导出', 'success');
+});
+
 document.getElementById('noteContent').addEventListener('input', event => {
   dirty = true; renderMarkdown(event.target.value); updateStatus();
 });
@@ -206,6 +270,7 @@ document.getElementById('deleteNoteButton').addEventListener('click', async () =
   const attachments = (await getAssets('file')).filter(record => record.noteId === deleted);
   await Promise.all(attachments.map(record => deleteAsset(record.id)));
   contentCache.delete(deleted); currentId = null; dirty = false;
+  document.getElementById('exportNoteButton').disabled = true;
   document.getElementById('noteDocument').classList.add('hidden'); document.getElementById('emptyNote').classList.remove('hidden'); renderList();
 });
 document.getElementById('noteCourseFilter').addEventListener('change', renderList);

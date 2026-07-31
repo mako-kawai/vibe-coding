@@ -1,8 +1,39 @@
 import { loadState, updateState } from './store.js';
-import { createId, gpaForScore, gradeSummary, parseGradeCsv } from './logic.js';
+import { createId, gpaForScore, gradeSummary, parseGradeCsv, parsePkuGradeText } from './logic.js';
 import { fillCourseOptions, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
 
 let editingId = null;
+let pendingPortalRecords = [];
+
+function importGradeRecords(records) {
+  let added = 0;
+  let updated = 0;
+  updateState(draft => {
+    records.forEach(record => {
+      let course = draft.courses.find(item => item.name === record.courseName || (record.courseCode && item.code === record.courseCode));
+      if (!course) {
+        course = { id: createId('course'), name: record.courseName, code: record.courseCode || '', credits: record.credits, category: '历史课程', status: 'completed', color: '#52627a', description: '' };
+        draft.courses.push(course);
+      }
+      const payload = {
+        ...record,
+        courseId: course.id,
+        term: record.term || draft.semester.name,
+        excludedFromGpa: record.gradingMode !== 'percentage',
+        recordedAt: new Date().toISOString()
+      };
+      const existing = draft.grades.find(item => item.courseId === course.id && item.term === payload.term);
+      if (existing) {
+        Object.assign(existing, payload, { id: existing.id, excludedFromGpa: existing.excludedFromGpa || payload.excludedFromGpa });
+        updated += 1;
+      } else {
+        draft.grades.push({ ...payload, id: createId('grade') });
+        added += 1;
+      }
+    });
+  });
+  return { added, updated };
+}
 
 function openGrade(record = null) {
   const state = loadState();
@@ -75,19 +106,49 @@ document.getElementById('gradeCsvInput').addEventListener('change', async event 
   if (parsed.errors.length) {
     result.append(node('p', { class: 'error-copy', text: `未导入：${parsed.errors.length} 个问题` }), node('ul', {}, parsed.errors.map(error => node('li', { text: error }))));
   } else {
-    updateState(draft => {
-      parsed.records.forEach(record => {
-        let course = draft.courses.find(item => item.name === record.courseName || (record.courseCode && item.code === record.courseCode));
-        if (!course) {
-          course = { id: createId('course'), name: record.courseName, code: record.courseCode, credits: record.credits, category: '历史课程', status: 'completed', color: '#52627a', description: '' };
-          draft.courses.push(course);
-        }
-        draft.grades.push({ ...record, id: createId('grade'), courseId: course.id, excludedFromGpa: record.gradingMode !== 'percentage', recordedAt: new Date().toISOString() });
-      });
-    });
-    result.append(node('p', { text: `成功导入 ${parsed.records.length} 条成绩记录。` })); render();
+    const counts = importGradeRecords(parsed.records);
+    result.append(node('p', { text: `导入完成：新增 ${counts.added} 条，更新 ${counts.updated} 条。` })); render();
   }
   openDialog('csvResultDialog'); event.target.value = '';
+});
+
+document.getElementById('openPortalImport').addEventListener('click', () => {
+  pendingPortalRecords = [];
+  document.getElementById('portalGradeText').value = '';
+  document.getElementById('portalGradeResult').replaceChildren();
+  document.getElementById('confirmPortalGrades').disabled = true;
+  openDialog('portalGradeDialog');
+  document.getElementById('portalGradeText').focus();
+});
+
+document.getElementById('parsePortalGrades').addEventListener('click', () => {
+  const parsed = parsePkuGradeText(document.getElementById('portalGradeText').value);
+  pendingPortalRecords = parsed.records;
+  const result = document.getElementById('portalGradeResult');
+  const messages = [...parsed.errors.map(error => node('li', { class: 'error-copy', text: error })), ...parsed.warnings.map(warning => node('li', { text: warning }))];
+  const preview = parsed.records.length ? node('div', { class: 'table-wrap import-table-wrap' }, [
+    node('table', { class: 'data-table compact-table' }, [
+      node('thead', {}, [node('tr', {}, ['课程', '学期', '学分', '成绩'].map(text => node('th', { text })))]),
+      node('tbody', {}, parsed.records.map(record => node('tr', {}, [
+        node('td', { text: record.courseName }), node('td', { text: record.term || '当前学期' }),
+        node('td', { text: String(record.credits) }), node('td', { class: 'grade-value', text: String(record.value) })
+      ])))
+    ])
+  ]) : null;
+  result.replaceChildren(...[
+    node('p', { class: parsed.records.length ? 'import-success' : 'error-copy', text: parsed.records.length ? `识别到 ${parsed.records.length} 门课程，请核对后导入。` : '尚未识别到可导入成绩。' }),
+    messages.length ? node('ul', { class: 'import-messages' }, messages) : null,
+    preview
+  ].filter(Boolean));
+  document.getElementById('confirmPortalGrades').disabled = parsed.records.length === 0;
+});
+
+document.getElementById('confirmPortalGrades').addEventListener('click', () => {
+  if (!pendingPortalRecords.length) return;
+  const counts = importGradeRecords(pendingPortalRecords);
+  document.getElementById('portalGradeDialog').close();
+  render();
+  toast(`成绩已导入：新增 ${counts.added} 条，更新 ${counts.updated} 条`, 'success');
 });
 
 document.getElementById('gradeCourse').addEventListener('change', () => {

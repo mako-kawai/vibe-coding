@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'mako-learning-static-';
-const CACHE_NAME = `${CACHE_PREFIX}v2-20260730-r3`;
+const CACHE_NAME = `${CACHE_PREFIX}v2-20260731-r1`;
 
 const CORE_FILES = [
   './', './index.html', './tasks.html', './courses.html', './notes.html',
@@ -8,7 +8,7 @@ const CORE_FILES = [
   './assets/theme-public.png', './assets/theme-makura.png', './assets/theme-yuzusoft.png',
   './js/logic.js', './js/store.js', './js/ui.js', './js/dashboard.js', './js/tasks.js',
   './js/courses-page.js', './js/notes-page.js', './js/schedule-page.js',
-  './js/grades-page.js', './js/settings-page.js',
+  './js/grades-page.js', './js/settings-page.js', './js/image-cropper.js',
   './vendor/lucide.min.js', './vendor/marked.min.js', './vendor/purify.min.js',
   './vendor/katex.min.css', './vendor/katex.min.js', './vendor/auto-render.min.js',
   './vendor/ical.min.js', './vendor/jszip.min.js',

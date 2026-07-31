@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   dedupeScheduleEvents, getDueState, gpaForScore, gradeSummary, legacyPkuGpa,
-  mergeState, migrateLegacyTasks, parseGradeCsv
+  mergeState, migrateLegacyTasks, parseGradeCsv, parseNoteMarkdown,
+  parsePkuGradeText, serializeNoteMarkdown
 } from '../js/logic.js';
+import { cropPlacement } from '../js/image-cropper.js';
 
 test('legacy homework and mirrored todo migrate into one task', () => {
   const tasks = migrateLegacyTasks(
@@ -63,6 +65,44 @@ test('CSV parser handles quoted names and rejects unsupported grade values', () 
   assert.equal(valid.records[0].courseName, '物理学,导论');
   const invalid = parseGradeCsv('课程名称,学分,记分方式,成绩\n量子力学,4,percentage,120\n实验,1,pass_fail,GOOD');
   assert.equal(invalid.errors.length, 2);
+});
+
+test('PKU portal text parser recognizes terms, numeric grades and pass records', () => {
+  const pasted = `25-26学年度3学期
+2 速成法语（零起点） 95
+学分 全校任选
+1 汉字太极与养生课 98
+学分 全校必修
+25-26学年度2学期
+5 高等数学A（二） 94.5
+学分 专业必修
+1 物理卓越计划讲堂：名师面对面（二） 合格
+学分 任选`;
+  const parsed = parsePkuGradeText(pasted);
+  assert.equal(parsed.errors.length, 0);
+  assert.deepEqual(parsed.records.map(record => [record.courseName, record.term, record.credits, record.value]), [
+    ['速成法语（零起点）', '2025-2026 学年度第3学期', 2, 95],
+    ['汉字太极与养生课', '2025-2026 学年度第3学期', 1, 98],
+    ['高等数学A（二）', '2025-2026 学年度第2学期', 5, 94.5],
+    ['物理卓越计划讲堂：名师面对面（二）', '2025-2026 学年度第2学期', 1, 'P']
+  ]);
+});
+
+test('Markdown note export preserves metadata and content for re-import', () => {
+  const serialized = serializeNoteMarkdown({ title: '角动量', courseId: 'theophy', chapter: '第三章', tags: ['力学'] }, '# 正文', { name: '理论物理基础' });
+  const parsed = parseNoteMarkdown(serialized, 'fallback.md');
+  assert.equal(parsed.title, '角动量');
+  assert.equal(parsed.metadata.courseId, 'theophy');
+  assert.deepEqual(parsed.metadata.tags, ['力学']);
+  assert.equal(parsed.content, '# 正文');
+});
+
+test('image crop placement covers the target canvas at every zoom', () => {
+  const placement = cropPlacement(800, 600, 600, 1500, 1.5, 100, -100);
+  assert.ok(placement.width >= 600);
+  assert.ok(placement.height >= 1500);
+  assert.ok(placement.x <= 0);
+  assert.ok(placement.y <= 0);
 });
 
 test('state merge updates matching IDs without duplicating schedule UIDs', () => {

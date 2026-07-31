@@ -8,7 +8,7 @@
 </head>
 <body data-page="notes">
   <main class="workspace notes-workspace">
-    <section class="page-heading compact"><div><span class="eyebrow">DERIVATION NOTEBOOK</span><h1>物理推导笔记</h1><p class="page-lead">公式、假设、推导和结论保持在同一个可检索上下文中。</p></div><button id="addNoteButton" class="primary-action"><i data-lucide="file-plus-2"></i>新笔记</button></section>
+    <section class="page-heading compact"><div><span class="eyebrow">DERIVATION NOTEBOOK</span><h1>物理推导笔记</h1><p class="page-lead">公式、假设、推导和结论保持在同一个可检索上下文中。</p></div><div class="heading-actions"><input id="noteImportInput" class="visually-hidden" type="file" accept=".md,.markdown,text/markdown,text/plain" multiple><button id="importNoteButton" class="secondary-action" type="button"><i data-lucide="file-input"></i>导入 Markdown</button><button id="exportNoteButton" class="secondary-action" type="button" disabled><i data-lucide="download"></i>导出当前</button><button id="addNoteButton" class="primary-action"><i data-lucide="file-plus-2"></i>新笔记</button></div></section>
     <section class="notes-layout">
       <aside class="note-index panel"><div class="note-index-tools"><select id="noteCourseFilter" aria-label="课程筛选"></select><input id="noteSearch" type="search" placeholder="搜索标题、章节或正文"></div><div id="noteList" class="note-list"></div></aside>
       <section class="note-editor panel">

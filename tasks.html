@@ -15,7 +15,7 @@
       <input id="taskSearch" type="search" placeholder="搜索任务" aria-label="搜索任务">
     </section>
     <section id="focusBar" class="focus-bar hidden" aria-live="polite"><div class="focus-pulse"><i data-lucide="timer"></i></div><div class="focus-copy"><span class="eyebrow">FOCUS SESSION</span><strong id="focusTaskTitle">专注任务</strong><small id="focusEstimate"></small></div><time id="focusClock">00:00</time><div class="focus-actions"><button id="pauseFocusButton" class="icon-btn" type="button" title="暂停专注" aria-label="暂停专注"><i data-lucide="pause"></i></button><button id="resumeFocusButton" class="icon-btn hidden" type="button" title="继续专注" aria-label="继续专注"><i data-lucide="play"></i></button><button id="finishFocusButton" class="primary-action" type="button"><i data-lucide="square"></i>结束并记录</button></div></section>
-    <section class="panel task-board"><div class="list-summary"><span id="taskSummary">0 个任务</span><span id="workloadSummary">预计 0 小时</span></div><div id="taskList" class="task-list"></div></section>
+    <section class="panel task-board"><div class="list-summary"><span id="taskSummary">0 个任务</span><div class="list-summary-actions"><span id="workloadSummary">预计 0 小时</span><button id="deleteCompletedButton" class="danger-button compact-action hidden" type="button"><i data-lucide="trash-2"></i>清空已完成</button></div></div><div id="taskList" class="task-list"></div></section>
   </main>
 
   <dialog id="taskDialog" class="app-dialog form-dialog">

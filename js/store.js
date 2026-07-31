@@ -27,10 +27,13 @@ function currentTermDefaults(now = new Date()) {
 export function createDefaultState() {
   return {
     version: 2,
-    profile: { displayName: 'mako', cohort: 2025, department: '北京大学物理学院' },
+    profile: { displayName: 'mako', cohort: 2025, department: '北京大学物理学院', avatarAssetId: null },
     settings: {
       theme: 'public', gpaEnabled: true, gpaRule: 'pku2019', reduceMotion: false,
-      backupReminderDays: 7, localThemeAssets: {}, migratedFromV1: false
+      backupReminderDays: 7, localThemeAssets: {}, migratedFromV1: false,
+      themeImageOpacity: 100, themeImageSaturation: 82, themeImageBrightness: 100,
+      sidebarImageAssetId: null, sidebarImageOpacity: 42,
+      sidebarImageSaturation: 85, sidebarImageBrightness: 72
     },
     semester: currentTermDefaults(),
     courses: COURSE_SEEDS.map(course => ({ ...course })),
