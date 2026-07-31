@@ -331,6 +331,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid color-mix(in srgb
 .policy-note p { margin: 4px 0; font-size: 11px; line-height: 1.55; }
 .policy-note a { color: var(--secondary); font-size: 11px; }
 .portal-grade-dialog { width: min(820px, calc(100vw - 28px)); }
+.text-import-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; color: var(--muted); font-size: 11px; }
 .import-preview { margin-top: 14px; }
 .import-success { color: var(--secondary); font-size: 12px; font-weight: 700; }
 .import-messages { max-height: 110px; overflow-y: auto; padding-left: 20px; color: var(--muted); font-size: 11px; }
@@ -546,6 +547,7 @@ body:not([data-page]) .footer-note { color: #9ea8b3; font-size: 11px; }
   .data-table th:nth-child(4), .data-table td:nth-child(4), .data-table th:nth-child(6), .data-table td:nth-child(6) { display: none; }
   .app-dialog { padding: 16px; }
   .visual-controls label { grid-template-columns: 1fr; gap: 4px; }
+  .text-import-tools { align-items: stretch; flex-direction: column; }
   .profile-image-editor { grid-template-columns: 68px minmax(0,1fr); }
   .avatar-preview { width: 62px; height: 62px; }
   .sidebar-image-editor { grid-template-columns: 90px minmax(0,1fr); }

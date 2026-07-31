@@ -121,7 +121,7 @@ document.getElementById('openPortalImport').addEventListener('click', () => {
   document.getElementById('portalGradeText').focus();
 });
 
-document.getElementById('parsePortalGrades').addEventListener('click', () => {
+function parsePortalInput() {
   const parsed = parsePkuGradeText(document.getElementById('portalGradeText').value);
   pendingPortalRecords = parsed.records;
   const result = document.getElementById('portalGradeResult');
@@ -141,6 +141,23 @@ document.getElementById('parsePortalGrades').addEventListener('click', () => {
     preview
   ].filter(Boolean));
   document.getElementById('confirmPortalGrades').disabled = parsed.records.length === 0;
+}
+
+document.getElementById('parsePortalGrades').addEventListener('click', parsePortalInput);
+document.getElementById('loadGradeTextFile').addEventListener('click', () => document.getElementById('gradeTextInput').click());
+document.getElementById('gradeTextInput').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  event.target.value = '';
+  if (!text.trim()) {
+    pendingPortalRecords = [];
+    document.getElementById('confirmPortalGrades').disabled = true;
+    document.getElementById('portalGradeResult').replaceChildren(node('p', { class: 'error-copy', text: '所选文本文件为空，请先确认文件中包含成绩内容。' }));
+    return;
+  }
+  document.getElementById('portalGradeText').value = text;
+  parsePortalInput();
 });
 
 document.getElementById('confirmPortalGrades').addEventListener('click', () => {

@@ -26,3 +26,10 @@ test('service worker precache paths exist', async () => {
   const paths = [...source.matchAll(/'\.\/([^']+)'/g)].map(match => match[1]).filter(path => path && !path.includes('${'));
   for (const path of paths) await access(resolve(root, path));
 });
+
+test('grade page exposes paste and plain-text file import controls', async () => {
+  const html = await readFile(resolve(root, 'grades.html'), 'utf8');
+  assert.match(html, /id="portalGradeText"/);
+  assert.match(html, /id="gradeTextInput"[^>]*\.txt/);
+  assert.match(html, /id="loadGradeTextFile"/);
+});
