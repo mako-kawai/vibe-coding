@@ -66,10 +66,6 @@ function renderShell(page) {
       node('span', { class: 'chapter-label', text: `CHAPTER / ${NAV_ITEMS.find(item => item.id === page)?.label || '学习'}` }),
       node('span', { class: 'offline-state', id: 'networkState', text: navigator.onLine ? 'ONLINE' : 'OFFLINE' })
     ]),
-    node('div', { class: 'topbar-actions' }, [
-      node('button', { class: 'icon-btn', type: 'button', title: '全局搜索', 'aria-label': '全局搜索', onClick: openGlobalSearch }, [icon('search')]),
-      node('button', { class: 'primary-action', type: 'button', onClick: () => location.assign('tasks.html?new=1') }, [icon('plus'), node('span', { text: '新任务' })])
-    ])
   ]);
   document.body.prepend(sidebar, header);
 
@@ -80,43 +76,6 @@ function renderShell(page) {
       applyTheme(theme);
     });
   });
-}
-
-function globalSearchItems(query) {
-  const state = loadState();
-  const value = query.trim().toLowerCase();
-  if (!value) return [];
-  return [
-    ...state.tasks.map(item => ({ type: '任务', title: item.title, href: `tasks.html?q=${encodeURIComponent(item.title)}` })),
-    ...state.courses.map(item => ({ type: '课程', title: item.name, href: `courses.html?id=${encodeURIComponent(item.id)}` })),
-    ...state.notes.map(item => ({ type: '笔记', title: item.title, href: `notes.html?id=${encodeURIComponent(item.id)}` }))
-  ].filter(item => item.title.toLowerCase().includes(value)).slice(0, 12);
-}
-
-function openGlobalSearch() {
-  const modal = document.getElementById('globalSearchModal');
-  modal?.showModal();
-  const input = document.getElementById('globalSearchInput');
-  input?.focus();
-}
-
-function ensureGlobalSearch() {
-  const dialog = node('dialog', { id: 'globalSearchModal', class: 'app-dialog search-dialog' });
-  const input = node('input', { id: 'globalSearchInput', type: 'search', placeholder: '搜索任务、课程和笔记', autocomplete: 'off' });
-  const results = node('div', { class: 'search-results', id: 'globalSearchResults' });
-  input.addEventListener('input', () => {
-    results.replaceChildren();
-    globalSearchItems(input.value).forEach(item => {
-      results.append(node('a', { class: 'search-hit', href: item.href }, [
-        node('span', { class: 'tag', text: item.type }), node('strong', { text: item.title }), icon('arrow-up-right', 16)
-      ]));
-    });
-  });
-  dialog.append(node('div', { class: 'dialog-head' }, [
-    node('div', {}, [node('span', { class: 'chapter-label', text: 'SEARCH' }), node('h2', { text: '全局搜索' })]),
-    node('button', { class: 'icon-btn', type: 'button', title: '关闭', 'aria-label': '关闭', onClick: () => dialog.close() }, [icon('x')])
-  ]), input, results);
-  document.body.append(dialog);
 }
 
 export function applyVisualSettings(state = loadState()) {
@@ -197,7 +156,6 @@ function registerServiceWorker() {
 
 export async function initApp(page) {
   renderShell(page);
-  ensureGlobalSearch();
   await applyTheme();
   await migrateLegacyNotes().catch(error => console.warn('Legacy notes migration skipped', error));
   registerServiceWorker();

@@ -49,3 +49,10 @@ test('clear background mode does not blur the full-page overlay by default', asy
   const baseOverlay = css.match(/body::after\s*\{([\s\S]*?)\}/)?.[1] || '';
   assert.doesNotMatch(baseOverlay, /backdrop-filter/);
 });
+
+test('shared top bar has no inactive search or quick-task actions', async () => {
+  const ui = await readFile(resolve(root, 'js/ui.js'), 'utf8');
+  const css = await readFile(resolve(root, 'styles.css'), 'utf8');
+  assert.doesNotMatch(ui, /全局搜索|globalSearch|tasks\.html\?new=1/);
+  assert.doesNotMatch(css, /search-dialog|search-results|search-hit/);
+});
