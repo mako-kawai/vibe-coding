@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  dedupeScheduleEvents, getDueState, gpaForScore, gradeSummary, legacyPkuGpa,
+  dedupeScheduleEvents, filterGradesByTerm, formatGpa, getDueState, gpaForScore, gradeSummary, legacyPkuGpa,
   mergeState, migrateLegacyTasks, parseGradeCsv, parseNoteMarkdown,
-  parsePkuGradeText, serializeNoteMarkdown
+  parsePkuGradeText, serializeGradeTranscriptCsv, serializeNoteMarkdown
 } from '../js/logic.js';
 import { backgroundImageQuality, cropPlacement } from '../js/image-cropper.js';
 
@@ -33,6 +33,14 @@ test('2019 GPA formula and selectable linear rule cover boundaries', () => {
   assert.equal(gpaForScore(60, 'linear4'), 0);
   assert.equal(gpaForScore(70, 'linear4'), 1);
   assert.equal(gpaForScore(100, 'linear4'), 4);
+});
+
+test('GPA display uses three decimals without changing null handling', () => {
+  assert.equal(formatGpa(3), '3.000');
+  assert.equal(formatGpa(3.1), '3.100');
+  assert.equal(formatGpa(3.125), '3.125');
+  assert.equal(formatGpa(null), '--');
+  assert.equal(formatGpa('not-a-number'), '--');
 });
 
 test('grade summary estimates only eligible percentage records', () => {
@@ -65,6 +73,20 @@ test('CSV parser handles quoted names and rejects unsupported grade values', () 
   assert.equal(valid.records[0].courseName, '物理学,导论');
   const invalid = parseGradeCsv('课程名称,学分,记分方式,成绩\n量子力学,4,percentage,120\n实验,1,pass_fail,GOOD');
   assert.equal(invalid.errors.length, 2);
+});
+
+test('transcript filtering and CSV serialization preserve grade modes and quoting', () => {
+  const courses = [{ id: 'c1', code: 'PHY,101', name: '理论物理,基础' }];
+  const records = [
+    { courseId: 'c1', term: '2025-2026 学年度第1学期', credits: 4, gradingMode: 'percentage', value: 88 },
+    { courseId: 'c1', term: '2025-2026 学年度第2学期', credits: 4, gradingMode: 'pass_fail', value: 'P', status: 'P' }
+  ];
+  assert.equal(filterGradesByTerm(records, '').length, 2);
+  assert.equal(filterGradesByTerm(records, '2025-2026 学年度第2学期').length, 1);
+  const csv = serializeGradeTranscriptCsv(records, courses);
+  assert.match(csv, /"PHY,101","理论物理,基础"/);
+  assert.match(csv, /88,.*\d\.\d{3}/);
+  assert.match(csv, /P,不纳入/);
 });
 
 test('PKU portal text parser recognizes terms, numeric grades and pass records', () => {

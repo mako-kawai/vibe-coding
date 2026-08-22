@@ -97,6 +97,44 @@ export function gpaForScore(score, rule = 'pku2019') {
   return legacyPkuGpa(score);
 }
 
+export function formatGpa(value) {
+  if (value === null || value === undefined || value === '') return '--';
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(3) : '--';
+}
+
+export function filterGradesByTerm(records = [], term = '') {
+  return term ? records.filter(record => record.term === term) : [...records];
+}
+
+function gradeModeLabel(mode) {
+  return mode === 'percentage' ? '百分制' : mode === 'letter' ? '等级制' : '合格制/状态';
+}
+
+function csvCell(value) {
+  const text = String(value ?? '');
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+export function serializeGradeTranscriptCsv(records = [], courses = [], gpaRule = 'pku2019') {
+  const courseMap = new Map(courses.map(course => [course.id, course]));
+  const rows = [
+    ['课程代码', '课程名称', '学期', '学分', '记分方式', '成绩', '绩点估算'],
+    ...records.map(record => {
+      const course = courseMap.get(record.courseId);
+      const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa
+        ? formatGpa(gpaForScore(record.value, gpaRule))
+        : '不纳入';
+      return [
+        course?.code || record.courseCode || '', course?.name || record.courseName || '未知课程',
+        record.term || '', record.credits ?? course?.credits ?? '', gradeModeLabel(record.gradingMode),
+        record.value ?? '', estimate
+      ];
+    })
+  ];
+  return `\uFEFF${rows.map(row => row.map(csvCell).join(',')).join('\r\n')}\r\n`;
+}
+
 export function gradeSummary(records, courses = [], gpaEnabled = true, gpaRule = 'pku2019') {
   const courseMap = new Map(courses.map(course => [course.id, course]));
   let weightedScore = 0;

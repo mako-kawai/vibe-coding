@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const pages = ['index.html', 'tasks.html', 'courses.html', 'notes.html', 'schedule.html', 'grades.html', 'settings.html'];
+const pages = ['index.html', 'tasks.html', 'courses.html', 'notes.html', 'schedule.html', 'grades.html', 'transcript.html', 'settings.html'];
 
 test('core page script and stylesheet dependencies are local and present', async () => {
   for (const page of pages) {
@@ -32,6 +32,22 @@ test('grade page exposes paste and plain-text file import controls', async () =>
   assert.match(html, /id="portalGradeText"/);
   assert.match(html, /id="gradeTextInput"[^>]*\.txt/);
   assert.match(html, /id="loadGradeTextFile"/);
+  assert.match(html, /id="exportTranscriptButton"/);
+});
+
+test('transcript page exposes print and CSV export controls', async () => {
+  const html = await readFile(resolve(root, 'transcript.html'), 'utf8');
+  const script = await readFile(resolve(root, 'js/transcript-page.js'), 'utf8');
+  assert.match(html, /id="printTranscript"/);
+  assert.match(html, /id="downloadTranscriptCsv"/);
+  assert.match(script, /serializeGradeTranscriptCsv/);
+  assert.match(script, /window\.print/);
+});
+
+test('dashboard uses the shared three-decimal GPA formatter', async () => {
+  const script = await readFile(resolve(root, 'js/dashboard.js'), 'utf8');
+  assert.match(script, /formatGpa/);
+  assert.doesNotMatch(script, /estimatedGpa\.toFixed\(2\)/);
 });
 
 test('theme settings expose clarity, reading mask and responsive crop controls', async () => {

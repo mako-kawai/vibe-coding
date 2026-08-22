@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#8f2f3a">
+  <title>成绩单 · mako's learning</title><link rel="stylesheet" href="styles.css?v=20260822"><script type="module" src="js/transcript-page.js"></script>
+</head>
+<body data-page="transcript" class="transcript-page">
+  <main class="transcript-shell">
+    <div class="transcript-toolbar"><a class="secondary-action" href="grades.html"><i data-lucide="arrow-left"></i>返回成绩</a><span class="action-spacer"></span><button id="downloadTranscriptCsv" class="secondary-action" type="button"><i data-lucide="download"></i>下载 CSV</button><button id="printTranscript" class="primary-action" type="button"><i data-lucide="printer"></i>打印 / 保存 PDF</button></div>
+    <article class="transcript-paper">
+      <header class="transcript-header"><div><span class="eyebrow">ACADEMIC TRANSCRIPT</span><h1>个人成绩单</h1><p id="transcriptScope" class="transcript-scope"></p></div><div class="transcript-stamp">PERSONAL<br>RECORD</div></header>
+      <section class="transcript-student"><div><span>姓名</span><strong id="studentName"></strong></div><div><span>院系</span><strong id="studentDepartment"></strong></div><div><span>年级</span><strong id="studentCohort"></strong></div><div><span>生成日期</span><strong id="generatedAt"></strong></div></section>
+      <p id="transcriptWarning" class="transcript-warning hidden"></p>
+      <section><div class="transcript-section-title"><h2>成绩记录</h2><span id="recordCount"></span></div><div class="transcript-table-wrap"><table class="data-table transcript-table"><thead><tr><th>课程</th><th>学期</th><th>学分</th><th>记分方式</th><th>成绩</th><th>绩点估算</th></tr></thead><tbody id="transcriptBody"></tbody></table></div></section>
+      <section><div class="transcript-section-title"><h2>统计摘要</h2><span>百分制平均分保留两位</span></div><div id="transcriptSummary" class="transcript-summary"></div><div id="termSummaries" class="term-summaries"></div></section>
+      <footer class="transcript-footer"><strong>说明</strong><p>本页面为个人学习记录输出，不是北京大学官方成绩单。GPA 为依据当前设置规则计算的非官方估算，仅纳入符合条件的百分制正式成绩；等级制和特殊状态会注明排除原因。</p><p id="transcriptGeneratedNote"></p></footer>
+    </article>
+  </main>
+</body>
+</html>

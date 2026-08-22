@@ -1,5 +1,5 @@
 import { courseById, loadState, updateState } from './store.js';
-import { formatDateTime, getDueState, gradeSummary, sortTasks, taskStats } from './logic.js';
+import { formatDateTime, formatGpa, getDueState, gradeSummary, sortTasks, taskStats } from './logic.js';
 import { icon, initApp, node, refreshIcons, toast } from './ui.js';
 
 function semesterStatus(state, now = new Date()) {
@@ -68,7 +68,7 @@ function render() {
   document.getElementById('activeTaskCount').textContent = stats.active;
   document.getElementById('overdueCount').textContent = stats.overdue;
   document.getElementById('courseCredits').textContent = state.courses.filter(course => course.status === 'active').reduce((sum, course) => sum + Number(course.credits || 0), 0);
-  document.getElementById('gpaEstimate').textContent = grades.estimatedGpa === null ? '--' : grades.estimatedGpa.toFixed(2);
+  document.getElementById('gpaEstimate').textContent = formatGpa(grades.estimatedGpa);
 
   const urgent = sortTasks(state.tasks.filter(task => task.status !== 'done'), now).slice(0, 5);
   const urgentContainer = document.getElementById('urgentTasks');

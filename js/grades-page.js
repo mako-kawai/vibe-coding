@@ -1,5 +1,5 @@
 import { loadState, updateState } from './store.js';
-import { createId, gpaForScore, gradeSummary, parseGradeCsv, parsePkuGradeText } from './logic.js';
+import { createId, filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, parseGradeCsv, parsePkuGradeText } from './logic.js';
 import { fillCourseOptions, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
 
 let editingId = null;
@@ -57,7 +57,7 @@ function render() {
   document.getElementById('gpaRuleLabel').textContent = state.settings.gpaRule === 'linear4' ? '当前：个人线性规则' : '当前：2019 版公式';
   document.getElementById('earnedCredits').textContent = summary.earnedCredits.toFixed(1).replace('.0', '');
   document.getElementById('weightedAverage').textContent = summary.weightedAverage === null ? '--' : summary.weightedAverage.toFixed(2);
-  document.getElementById('estimatedGpa').textContent = summary.estimatedGpa === null ? '--' : summary.estimatedGpa.toFixed(2);
+  document.getElementById('estimatedGpa').textContent = formatGpa(summary.estimatedGpa);
   document.getElementById('gpaCredits').textContent = summary.gpaCredits.toFixed(1).replace('.0', '');
   document.getElementById('gradeExclusionNote').textContent = summary.exclusions.length ? `${summary.exclusions.length} 条非百分制或手动排除记录未进入 GPA 估算。` : '当前百分制成绩均已进入 GPA 估算。';
   const terms = [...new Set(state.grades.map(record => record.term).filter(Boolean))].sort().reverse();
@@ -65,11 +65,11 @@ function render() {
   const selected = termFilter.value;
   termFilter.replaceChildren(node('option', { value: '', text: '全部学期' }), ...terms.map(term => node('option', { value: term, text: term })));
   termFilter.value = terms.includes(selected) ? selected : '';
-  const records = state.grades.filter(record => !termFilter.value || record.term === termFilter.value);
+  const records = filterGradesByTerm(state.grades, termFilter.value);
   const body = document.getElementById('gradeTableBody');
   body.replaceChildren(...(records.length ? records.map(record => {
     const course = state.courses.find(item => item.id === record.courseId);
-    const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa ? gpaForScore(record.value, state.settings.gpaRule)?.toFixed(2) : '不纳入';
+    const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa ? formatGpa(gpaForScore(record.value, state.settings.gpaRule)) : '不纳入';
     const edit = node('button', { class: 'icon-btn', type: 'button', title: '编辑成绩', 'aria-label': `编辑 ${course?.name || '课程'} 成绩` }, [icon('pencil')]);
     edit.addEventListener('click', () => openGrade(record));
     return node('tr', {}, [node('td', {}, [node('strong', { text: course?.name || record.courseName || '未知课程' }), node('small', { text: course?.code || '' })]), node('td', { text: record.term }), node('td', { text: String(record.credits) }), node('td', { text: record.gradingMode === 'percentage' ? '百分制' : record.gradingMode === 'letter' ? '等级制' : '合格制/状态' }), node('td', { class: 'grade-value', text: String(record.value) }), node('td', { text: estimate }), node('td', {}, [edit])]);
@@ -174,5 +174,9 @@ document.getElementById('gradeCourse').addEventListener('change', () => {
 });
 document.getElementById('addGradeButton').addEventListener('click', () => openGrade());
 document.getElementById('gradeTermFilter').addEventListener('change', render);
+document.getElementById('exportTranscriptButton').addEventListener('click', () => {
+  const term = document.getElementById('gradeTermFilter').value;
+  location.assign(`transcript.html${term ? `?term=${encodeURIComponent(term)}` : ''}`);
+});
 
 await initApp('grades'); render();
