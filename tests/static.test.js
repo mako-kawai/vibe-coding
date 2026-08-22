@@ -24,7 +24,7 @@ test('core page script and stylesheet dependencies are local and present', async
 test('service worker precache paths exist', async () => {
   const source = await readFile(resolve(root, 'sw.js'), 'utf8');
   const paths = [...source.matchAll(/'\.\/([^']+)'/g)].map(match => match[1]).filter(path => path && !path.includes('${'));
-  for (const path of paths) await access(resolve(root, path));
+  for (const path of paths) await access(resolve(root, path.split('?')[0]));
 });
 
 test('grade page exposes paste and plain-text file import controls', async () => {
@@ -33,6 +33,8 @@ test('grade page exposes paste and plain-text file import controls', async () =>
   assert.match(html, /id="gradeTextInput"[^>]*\.txt/);
   assert.match(html, /id="loadGradeTextFile"/);
   assert.match(html, /id="exportTranscriptButton"/);
+  assert.match(html, /id="professionalGpa"/);
+  assert.match(html, /课程类别/);
 });
 
 test('transcript page exposes print and CSV export controls', async () => {
@@ -42,6 +44,13 @@ test('transcript page exposes print and CSV export controls', async () => {
   assert.match(html, /id="downloadTranscriptCsv"/);
   assert.match(script, /serializeGradeTranscriptCsv/);
   assert.match(script, /window\.print/);
+  assert.match(script, /professionalRecords/);
+  assert.match(script, /termGroups/);
+});
+
+test('course page exposes the six official category options', async () => {
+  const html = await readFile(resolve(root, 'courses.html'), 'utf8');
+  for (const category of ['专业任选', '全校任选', '全校必修', '专业必修', '任选', '通选课']) assert.match(html, new RegExp(category));
 });
 
 test('dashboard uses the shared three-decimal GPA formatter', async () => {
@@ -64,6 +73,14 @@ test('clear background mode does not blur the full-page overlay by default', asy
   assert.match(css, /data-background-mode="soft"[^}]+backdrop-filter:\s*blur\(3px\)/);
   const baseOverlay = css.match(/body::after\s*\{([\s\S]*?)\}/)?.[1] || '';
   assert.doesNotMatch(baseOverlay, /backdrop-filter/);
+});
+
+test('top bar remains translucent so the wallpaper can show through', async () => {
+  const css = await readFile(resolve(root, 'styles.css'), 'utf8');
+  const topbar = css.match(/\.app-topbar\s*\{([\s\S]*?)\}/)?.[1] || '';
+  assert.match(topbar, /background:\s*rgba\([^)]*,\.16\)/);
+  assert.match(topbar, /backdrop-filter:\s*blur\(5px\)/);
+  assert.doesNotMatch(topbar, /background:\s*rgba\([^)]*,\.86\)/);
 });
 
 test('shared top bar has no inactive search or quick-task actions', async () => {

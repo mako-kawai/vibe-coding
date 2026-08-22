@@ -15,6 +15,17 @@ export const PRIORITIES = {
 
 export const SPECIAL_GRADES = new Set(['P', 'NP', 'EX', 'I', 'IP', 'W', 'F']);
 
+export const COURSE_CATEGORIES = ['专业任选', '全校任选', '全校必修', '专业必修', '任选', '通选课'];
+export const UNCATEGORIZED = '未分类';
+
+export function normalizeCourseCategory(value) {
+  const text = String(value || '').trim();
+  if (COURSE_CATEGORIES.includes(text)) return text;
+  if (text === '专业选修') return '专业任选';
+  if (text === '全校任选课') return '全校任选';
+  return UNCATEGORIZED;
+}
+
 export function createId(prefix = 'item') {
   const token = globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   return `${prefix}_${token}`;
@@ -107,6 +118,24 @@ export function filterGradesByTerm(records = [], term = '') {
   return term ? records.filter(record => record.term === term) : [...records];
 }
 
+export function splitGradesByCategory(records = [], courses = [], category = '专业必修') {
+  const courseMap = new Map(courses.map(course => [course.id, course]));
+  const professional = [];
+  const other = [];
+  records.forEach(record => {
+    const recordCategory = normalizeCourseCategory(courseMap.get(record.courseId)?.category || record.category);
+    (recordCategory === category ? professional : other).push(record);
+  });
+  return { professional, other };
+}
+
+export function groupGradesByTerm(records = []) {
+  return [...new Set(records.map(record => record.term || '未设置'))].sort().reverse().map(term => ({
+    term,
+    records: records.filter(record => (record.term || '未设置') === term)
+  }));
+}
+
 function gradeModeLabel(mode) {
   return mode === 'percentage' ? '百分制' : mode === 'letter' ? '等级制' : '合格制/状态';
 }
@@ -119,7 +148,7 @@ function csvCell(value) {
 export function serializeGradeTranscriptCsv(records = [], courses = [], gpaRule = 'pku2019') {
   const courseMap = new Map(courses.map(course => [course.id, course]));
   const rows = [
-    ['课程代码', '课程名称', '学期', '学分', '记分方式', '成绩', '绩点估算'],
+    ['课程代码', '课程名称', '课程类别', '学期', '学分', '记分方式', '成绩', '绩点估算'],
     ...records.map(record => {
       const course = courseMap.get(record.courseId);
       const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa
@@ -127,6 +156,7 @@ export function serializeGradeTranscriptCsv(records = [], courses = [], gpaRule 
         : '不纳入';
       return [
         course?.code || record.courseCode || '', course?.name || record.courseName || '未知课程',
+        normalizeCourseCategory(course?.category || record.category),
         record.term || '', record.credits ?? course?.credits ?? '', gradeModeLabel(record.gradingMode),
         record.value ?? '', estimate
       ];
@@ -174,6 +204,12 @@ export function gradeSummary(records, courses = [], gpaEnabled = true, gpaRule =
   };
 }
 
+export function gradeSummaryForCategory(records = [], courses = [], category, gpaEnabled = true, gpaRule = 'pku2019') {
+  const courseMap = new Map(courses.map(course => [course.id, course]));
+  const filtered = records.filter(record => normalizeCourseCategory(courseMap.get(record.courseId)?.category || record.category) === category);
+  return gradeSummary(filtered, courses, gpaEnabled, gpaRule);
+}
+
 export function parseCsv(text) {
   const rows = [];
   let row = [];
@@ -216,6 +252,7 @@ export function parseGradeCsv(text) {
   const aliases = {
     coursecode: 'courseCode', '课程代码': 'courseCode',
     coursename: 'courseName', '课程名称': 'courseName',
+    category: 'category', '课程类别': 'category', '类别': 'category',
     term: 'term', '学期': 'term', credits: 'credits', '学分': 'credits',
     gradingmode: 'gradingMode', '记分方式': 'gradingMode',
     score: 'value', '成绩': 'value', status: 'status', '状态': 'status'
@@ -240,6 +277,7 @@ export function parseGradeCsv(text) {
     }
     return {
       courseCode: item.courseCode || '', courseName: item.courseName,
+      category: item.category ? normalizeCourseCategory(item.category) : '',
       term: item.term || '', credits, gradingMode: mode,
       value: mode === 'percentage' ? Number(item.value) : String(item.value).toUpperCase(),
       status: String(item.status || '').toUpperCase()
@@ -249,7 +287,7 @@ export function parseGradeCsv(text) {
 }
 
 const PKU_TERM_PATTERN = /(?:20)?(\d{2})\s*[-—–至]\s*(?:20)?(\d{2})\s*学年度\s*第?\s*([123])\s*学期/i;
-const COURSE_CATEGORY_PATTERN = /(?:专业必修|专业选修|全校必修|全校任选|全校任选课|通选课|任选|必修|限选|公选|辅修|双学位)/g;
+const COURSE_CATEGORY_PATTERN = /(?:专业任选|专业选修|专业必修|全校必修|全校任选课?|通选课|任选)/g;
 const PORTAL_GRADE_PATTERN = /(?:^|\s)(100(?:\.0+)?|(?:\d{1,2})(?:\.\d+)?|合格|不合格|通过|未通过|P|NP|EX|IP|I|W|F)(?=\s|$)/gi;
 
 function normalizePkuTerm(match) {
@@ -271,6 +309,8 @@ function normalizePortalGrade(raw) {
 
 function parsePortalRow(row, term, rowNumber, errors) {
   let source = row.parts.join(' ').replace(/\s+/g, ' ').trim();
+  const categoryMatch = source.match(COURSE_CATEGORY_PATTERN);
+  const category = categoryMatch ? normalizeCourseCategory(categoryMatch[0]) : '';
   source = source.replace(/学分/g, ' ').replace(COURSE_CATEGORY_PATTERN, ' ').replace(/\s+/g, ' ').trim();
   const gradeMatches = [...source.matchAll(PORTAL_GRADE_PATTERN)];
   const gradeMatch = gradeMatches.at(-1);
@@ -287,7 +327,7 @@ function parsePortalRow(row, term, rowNumber, errors) {
     return null;
   }
   return {
-    courseCode: '', courseName, term: term || '', credits: row.credits,
+    courseCode: '', courseName, category, term: term || '', credits: row.credits,
     ...grade, source: 'pku-portal-text'
   };
 }

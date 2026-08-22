@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  dedupeScheduleEvents, filterGradesByTerm, formatGpa, getDueState, gpaForScore, gradeSummary, legacyPkuGpa,
+  dedupeScheduleEvents, filterGradesByTerm, formatGpa, getDueState, gpaForScore, gradeSummary, gradeSummaryForCategory, groupGradesByTerm, legacyPkuGpa,
   mergeState, migrateLegacyTasks, parseGradeCsv, parseNoteMarkdown,
-  parsePkuGradeText, serializeGradeTranscriptCsv, serializeNoteMarkdown
+  normalizeCourseCategory, parsePkuGradeText, serializeGradeTranscriptCsv, serializeNoteMarkdown, splitGradesByCategory
 } from '../js/logic.js';
 import { backgroundImageQuality, cropPlacement } from '../js/image-cropper.js';
 
@@ -43,6 +43,13 @@ test('GPA display uses three decimals without changing null handling', () => {
   assert.equal(formatGpa('not-a-number'), '--');
 });
 
+test('course categories normalize legacy labels and keep the six official categories', () => {
+  assert.equal(normalizeCourseCategory('专业选修'), '专业任选');
+  assert.equal(normalizeCourseCategory('全校任选课'), '全校任选');
+  assert.equal(normalizeCourseCategory('物理基础'), '未分类');
+  assert.equal(normalizeCourseCategory('专业必修'), '专业必修');
+});
+
 test('grade summary estimates only eligible percentage records', () => {
   const records = [
     { id: 'p', gradingMode: 'percentage', value: 80, credits: 4 },
@@ -56,6 +63,37 @@ test('grade summary estimates only eligible percentage records', () => {
   assert.equal(summary.gpaCredits, 4);
   assert.equal(summary.earnedCredits, 9);
   assert.equal(summary.exclusions.length, 4);
+});
+
+test('professional requirement GPA only includes percentage grades from that course category', () => {
+  const courses = [
+    { id: 'required', category: '专业必修' },
+    { id: 'elective', category: '专业任选' }
+  ];
+  const records = [
+    { id: 'required-score', courseId: 'required', gradingMode: 'percentage', value: 90, credits: 4 },
+    { id: 'required-pass', courseId: 'required', gradingMode: 'pass_fail', value: 'P', credits: 1 },
+    { id: 'elective-score', courseId: 'elective', gradingMode: 'percentage', value: 100, credits: 4 }
+  ];
+  const summary = gradeSummaryForCategory(records, courses, '专业必修', true, 'pku2019');
+  assert.equal(summary.gpaCredits, 4);
+  assert.equal(summary.estimatedGpa, 3.8125);
+  assert.equal(summary.exclusions.length, 1);
+});
+
+test('transcript puts professional requirements first and separates remaining terms', () => {
+  const courses = [{ id: 'required', category: '专业必修' }, { id: 'other', category: '全校任选' }];
+  const records = [
+    { id: 'other-2', courseId: 'other', term: '2025-2026 学年度第2学期' },
+    { id: 'required-1', courseId: 'required', term: '2025-2026 学年度第1学期' },
+    { id: 'other-1', courseId: 'other', term: '2025-2026 学年度第1学期' }
+  ];
+  const split = splitGradesByCategory(records, courses);
+  assert.deepEqual(split.professional.map(record => record.id), ['required-1']);
+  assert.deepEqual(groupGradesByTerm(split.other).map(group => [group.term, group.records.map(record => record.id)]), [
+    ['2025-2026 学年度第2学期', ['other-2']],
+    ['2025-2026 学年度第1学期', ['other-1']]
+  ]);
 });
 
 test('ICS-style events deduplicate by UID', () => {
@@ -84,7 +122,7 @@ test('transcript filtering and CSV serialization preserve grade modes and quotin
   assert.equal(filterGradesByTerm(records, '').length, 2);
   assert.equal(filterGradesByTerm(records, '2025-2026 学年度第2学期').length, 1);
   const csv = serializeGradeTranscriptCsv(records, courses);
-  assert.match(csv, /"PHY,101","理论物理,基础"/);
+  assert.match(csv, /"PHY,101","理论物理,基础",未分类/);
   assert.match(csv, /88,.*\d\.\d{3}/);
   assert.match(csv, /P,不纳入/);
 });
@@ -107,6 +145,57 @@ test('PKU portal text parser recognizes terms, numeric grades and pass records',
     ['汉字太极与养生课', '2025-2026 学年度第3学期', 1, 98],
     ['高等数学A（二）', '2025-2026 学年度第2学期', 5, 94.5],
     ['物理卓越计划讲堂：名师面对面（二）', '2025-2026 学年度第2学期', 1, 'P']
+  ]);
+  assert.deepEqual(parsed.records.map(record => record.category), ['全校任选', '全校必修', '专业必修', '任选']);
+
+  const csv = parseGradeCsv('课程名称,课程类别,学分,成绩\n理论物理,专业必修,4,90');
+  assert.equal(csv.errors.length, 0);
+  assert.equal(csv.records[0].category, '专业必修');
+});
+
+test('PKU portal parser accepts the fully line-broken copied format', () => {
+  const pasted = `25-26学年度3学期
+2
+学分
+速成法语（零起点）
+全校任选
+95
+1
+学分
+汉字太极与养生课
+全校必修
+98
+25-26学年度2学期
+5
+学分
+高等数学A（二）
+专业必修
+94.5
+4
+学分
+理论物理基础II
+专业必修
+97
+3
+学分
+数学物理方法 (上)
+专业必修
+95
+3
+学分
+实验物理中的统计方法
+任选
+94`;
+  const parsed = parsePkuGradeText(pasted);
+  assert.equal(parsed.errors.length, 0);
+  assert.equal(parsed.warnings.length, 0);
+  assert.deepEqual(parsed.records.map(record => [record.courseName, record.credits, record.category, record.value]), [
+    ['速成法语（零起点）', 2, '全校任选', 95],
+    ['汉字太极与养生课', 1, '全校必修', 98],
+    ['高等数学A（二）', 5, '专业必修', 94.5],
+    ['理论物理基础II', 4, '专业必修', 97],
+    ['数学物理方法 (上)', 3, '专业必修', 95],
+    ['实验物理中的统计方法', 3, '任选', 94]
   ]);
 });
 

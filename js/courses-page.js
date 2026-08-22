@@ -1,5 +1,5 @@
-import { loadState, updateState } from './store.js';
-import { createId, formatDateTime } from './logic.js';
+import { loadState, updateState } from './store.js?v=20260822';
+import { createId, formatDateTime, normalizeCourseCategory } from './logic.js?v=20260822';
 import { icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
 
 let statusFilter = 'active';
@@ -11,7 +11,7 @@ function openCourse(course = null) {
   document.getElementById('courseName').value = course?.name || '';
   document.getElementById('courseCode').value = course?.code || '';
   document.getElementById('courseCreditsInput').value = course?.credits ?? 4;
-  document.getElementById('courseCategory').value = course?.category || '';
+  document.getElementById('courseCategory').value = normalizeCourseCategory(course?.category);
   document.getElementById('courseStatus').value = course?.status || 'active';
   document.getElementById('courseColor').value = course?.color || '#b5474d';
   document.getElementById('courseResource').value = course?.resourceUrl || '';
@@ -35,6 +35,7 @@ function openCourseOverview(course) {
   const grades = state.grades.filter(grade => grade.courseId === course.id);
   document.getElementById('overviewCourseName').textContent = course.name;
   document.getElementById('courseOverviewContent').replaceChildren(
+    node('p', { class: 'course-category-label', text: `课程类别：${normalizeCourseCategory(course.category)}` }),
     node('div', { class: 'overview-quick-links' }, [
       node('a', { class: 'secondary-action', href: `tasks.html?course=${course.id}` }, [icon('list-checks'), node('span', { text: '全部任务' })]),
       node('a', { class: 'secondary-action', href: `notes.html?course=${course.id}` }, [icon('notebook-pen'), node('span', { text: '课程笔记' })]),
@@ -58,7 +59,7 @@ function courseCard(course, state) {
   return node('article', { class: 'course-card', style: `--course-color:${course.color || '#8f2f3a'}` }, [
     node('div', { class: 'course-card-accent' }),
     node('div', { class: 'course-card-head' }, [node('span', { class: 'course-code', text: course.code || 'NO CODE' }), edit]),
-    node('div', { class: 'course-card-body' }, [node('h2', { text: course.name }), node('p', { text: course.description || '暂未填写课程说明。' })]),
+    node('div', { class: 'course-card-body' }, [node('h2', { text: course.name }), node('span', { class: 'course-category-label', text: normalizeCourseCategory(course.category) }), node('p', { text: course.description || '暂未填写课程说明。' })]),
     node('div', { class: 'course-stats' }, [
       node('span', {}, [node('strong', { text: String(course.credits || 0) }), node('small', { text: '学分' })]),
       node('span', {}, [node('strong', { text: String(tasks.length) }), node('small', { text: '待办' })]),
@@ -93,7 +94,7 @@ document.getElementById('courseForm').addEventListener('submit', event => {
     const payload = {
       id: editingId || createId('course'), name: document.getElementById('courseName').value.trim(),
       code: document.getElementById('courseCode').value.trim(), credits: Number(document.getElementById('courseCreditsInput').value) || 0,
-      category: document.getElementById('courseCategory').value.trim(), status: document.getElementById('courseStatus').value,
+      category: normalizeCourseCategory(document.getElementById('courseCategory').value), status: document.getElementById('courseStatus').value,
       color: document.getElementById('courseColor').value, resourceUrl: document.getElementById('courseResource').value.trim(),
       description: document.getElementById('courseDescription').value.trim()
     };

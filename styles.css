@@ -108,7 +108,7 @@ h3 { font-size: 16px; }
 .theme-dot[data-theme="yuzusoft"] { background: #d9894c; }
 .theme-dot.selected { outline: 2px solid #fff; outline-offset: 2px; }
 
-.app-topbar { position: fixed; inset: 0 0 auto 220px; z-index: 25; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: rgba(250,249,247,.86); border-bottom: 1px solid var(--line); backdrop-filter: blur(18px); }
+.app-topbar { position: fixed; inset: 0 0 auto 220px; z-index: 25; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: rgba(250,249,247,.16); border-bottom: 1px solid rgba(255,255,255,.34); backdrop-filter: blur(5px) saturate(115%); }
 .topbar-context, .heading-actions, .week-controls, .editor-actions { display: flex; align-items: center; gap: 10px; }
 .offline-state { padding-left: 10px; border-left: 1px solid var(--line); color: var(--secondary); font-size: 10px; font-weight: 700; }
 .chapter-label, .eyebrow { display: inline-block; color: var(--accent); font-size: 10px; font-weight: 800; text-transform: uppercase; }
@@ -244,6 +244,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid color-mix(in srgb
 .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .course-card { position: relative; min-width: 0; min-height: 270px; display: flex; flex-direction: column; padding: 19px; background: var(--surface); border: 1px solid rgba(255,255,255,.85); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
 .course-card-accent { position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--course-color); }
+.course-category-label { display: inline-block; width: fit-content; margin: 2px 0 8px; padding: 3px 7px; background: var(--accent-soft); color: var(--accent); font-size: 10px; font-weight: 700; }
 .course-card-head { display: flex; align-items: center; justify-content: space-between; }
 .course-code { color: var(--course-color); font-size: 10px; font-weight: 800; }
 .course-card-body { flex: 1; padding: 13px 0; }
@@ -327,6 +328,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid color-mix(in srgb
 .data-table td small { margin-top: 3px; color: var(--muted); font-size: 9px; }
 .grade-value { font-family: Georgia, serif; font-size: 18px; color: var(--accent); }
 .policy-note { display: flex; gap: 14px; margin-top: 14px; padding: 16px 18px; color: #3d4f52; background: rgba(222,234,232,.93); border-left: 3px solid var(--secondary); box-shadow: var(--shadow); }
+.professional-gpa { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 14px; border-left: 3px solid var(--accent); }
+.professional-gpa h2 { margin: 4px 0 5px; }
+.professional-gpa p { margin: 0; color: var(--muted); font-size: 12px; }
+.professional-gpa-values { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; white-space: nowrap; }
+.professional-gpa-values strong { color: var(--accent); font-size: 28px; font-variant-numeric: tabular-nums; }
+.professional-gpa-values span { color: var(--muted); font-size: 11px; }
 .policy-note svg { flex: 0 0 auto; width: 19px; }
 .policy-note strong { font-size: 13px; }
 .policy-note p { margin: 4px 0; font-size: 11px; line-height: 1.55; }
@@ -443,7 +450,12 @@ body[data-page="transcript"]::after { background: #eef0f2; }
 .transcript-table { min-width: 720px; }
 .transcript-table th, .transcript-table td { padding: 10px 12px; }
 .transcript-table td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
-.transcript-summary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.transcript-groups { display: grid; gap: 56px; }
+.transcript-group { break-inside: avoid; page-break-inside: avoid; }
+.transcript-term-groups { display: grid; gap: 56px; }
+.transcript-group-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 22px; margin: -2px 0 10px; color: var(--muted); font-size: 11px; }
+.transcript-group-summary strong { color: var(--accent); font-size: 13px; }
+.transcript-summary { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .transcript-metric { display: flex; flex-direction: column; gap: 7px; padding: 14px; background: #faf9f7; }
 .transcript-metric span { color: var(--muted); font-size: 10px; }
 .transcript-metric strong { font-size: 20px; font-variant-numeric: tabular-nums; }
@@ -516,7 +528,7 @@ body:not([data-page]) .footer-note { color: #9ea8b3; font-size: 11px; }
   .nav-item { min-width: 52px; min-height: 56px; flex: 1 0 52px; flex-direction: column; justify-content: center; gap: 3px; padding: 0 4px; border-radius: 3px; font-size: 9px; }
   .nav-item.active::before { inset: auto 8px -4px; width: auto; height: 3px; }
   .nav-item svg { width: 17px; height: 17px; }
-  .app-topbar { inset: 0 0 auto; height: 56px; padding: 0 14px; }
+  .app-topbar { inset: 0 0 auto; height: 56px; padding: 0 14px; background: rgba(250,249,247,.13); }
   .topbar-context .chapter-label { display: none; }
   .workspace { width: 100%; margin: 0; padding: 78px 14px 92px; }
   .page-heading, .page-heading.compact { align-items: flex-start; }
@@ -527,6 +539,8 @@ body:not([data-page]) .footer-note { color: #9ea8b3; font-size: 11px; }
   .agenda-side { order: -1; }
   .notes-layout { grid-template-columns: 220px minmax(0,1fr); }
   .metric-grid, .grade-summary { grid-template-columns: repeat(2,1fr); }
+  .professional-gpa { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .professional-gpa-values { align-items: flex-start; }
   .dashboard-jumpbar { grid-template-columns: repeat(3,1fr); }
 }
 
@@ -538,6 +552,7 @@ body:not([data-page]) .footer-note { color: #9ea8b3; font-size: 11px; }
   .heading-actions { width: 100%; flex-wrap: wrap; }
   .heading-actions > button { flex: 1 1 130px; }
   .semester-chip { width: 100%; }
+  .professional-gpa-values strong { font-size: 24px; }
   .story-strip { grid-template-columns: 40px 1fr; padding: 12px; }
   .portrait-token { width: 38px; height: 38px; font-size: 17px; }
   .story-strip p { font-size: 12px; }
@@ -618,5 +633,7 @@ body:not([data-page]) .footer-note { color: #9ea8b3; font-size: 11px; }
   .transcript-table { min-width: 0; }
   .transcript-table thead { display: table-header-group; }
   .transcript-table tr { break-inside: avoid; }
+  .transcript-groups, .transcript-term-groups { gap: 42px; }
+  .transcript-group { break-inside: avoid; page-break-inside: avoid; }
   .transcript-summary, .term-summaries { break-inside: avoid; }
 }

@@ -1,14 +1,14 @@
 const CACHE_PREFIX = 'mako-learning-static-';
-const CACHE_NAME = `${CACHE_PREFIX}v2-20260822-r1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2-20260822-r3`;
 
 const CORE_FILES = [
   './', './index.html', './tasks.html', './courses.html', './notes.html',
   './schedule.html', './grades.html', './transcript.html', './settings.html', './homework.html', './help.html',
   './styles.css', './manifest.webmanifest', './assets/app-icon.svg',
   './assets/theme-public.png', './assets/theme-makura.png', './assets/theme-yuzusoft.png',
-  './js/logic.js', './js/store.js', './js/ui.js', './js/dashboard.js', './js/tasks.js',
-  './js/courses-page.js', './js/notes-page.js', './js/schedule-page.js', './js/transcript-page.js',
-  './js/grades-page.js', './js/settings-page.js', './js/image-cropper.js',
+  './js/logic.js', './js/logic.js?v=20260822', './js/store.js', './js/store.js?v=20260822', './js/ui.js', './js/dashboard.js', './js/tasks.js',
+  './js/courses-page.js', './js/courses-page.js?v=20260822', './js/notes-page.js', './js/schedule-page.js', './js/transcript-page.js', './js/transcript-page.js?v=20260822',
+  './js/grades-page.js', './js/grades-page.js?v=20260822', './js/settings-page.js', './js/image-cropper.js',
   './vendor/lucide.min.js', './vendor/marked.min.js', './vendor/purify.min.js',
   './vendor/katex.min.css', './vendor/katex.min.js', './vendor/auto-render.min.js',
   './vendor/ical.min.js', './vendor/jszip.min.js',

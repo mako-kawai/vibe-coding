@@ -1,4 +1,4 @@
-import { createId, dedupeScheduleEvents, mergeState, migrateLegacyTasks } from './logic.js';
+import { UNCATEGORIZED, createId, dedupeScheduleEvents, mergeState, migrateLegacyTasks, normalizeCourseCategory } from './logic.js?v=20260822';
 
 export const STATE_KEY = 'mako_learning_v2';
 export const STATE_EVENT = 'mako:state-change';
@@ -7,11 +7,11 @@ const DB_VERSION = 1;
 const STORE_NAME = 'records';
 
 const COURSE_SEEDS = [
-  { id: 'math', code: 'MATH', name: '高等数学', credits: 4, category: '数学基础', status: 'active', color: '#b5474d', description: '微积分、线性代数与微分方程。', resourceUrl: 'pdf/math.html' },
-  { id: 'mathmethods', code: 'PHY-MATH', name: '数学物理方法', credits: 4, category: '物理基础', status: 'active', color: '#2d7373', description: '复变函数、积分变换与特殊函数。', resourceUrl: 'pdf/mathmethods.html' },
-  { id: 'theophy', code: 'PHY-THEORY', name: '理论物理基础', credits: 4, category: '物理基础', status: 'active', color: '#415a77', description: '经典力学、热力学与统计物理。', resourceUrl: 'pdf/theophy.html' },
-  { id: 'atmosphere', code: 'AI-STUDIO', name: '氛围编程', credits: 2, category: '通识与实践', status: 'active', color: '#9b6b9e', description: 'AI 辅助编程与学习工具实践。', resourceUrl: 'modules/module1.html' },
-  { id: 'macro', code: 'ECON', name: '中级宏观经济学', credits: 3, category: '跨学科', status: 'planned', color: '#9b7137', description: '国民收入、经济增长与宏观政策。', resourceUrl: 'pdf/macro.html' }
+  { id: 'math', code: 'MATH', name: '高等数学', credits: 4, category: UNCATEGORIZED, status: 'active', color: '#b5474d', description: '微积分、线性代数与微分方程。', resourceUrl: 'pdf/math.html' },
+  { id: 'mathmethods', code: 'PHY-MATH', name: '数学物理方法', credits: 4, category: UNCATEGORIZED, status: 'active', color: '#2d7373', description: '复变函数、积分变换与特殊函数。', resourceUrl: 'pdf/mathmethods.html' },
+  { id: 'theophy', code: 'PHY-THEORY', name: '理论物理基础', credits: 4, category: UNCATEGORIZED, status: 'active', color: '#415a77', description: '经典力学、热力学与统计物理。', resourceUrl: 'pdf/theophy.html' },
+  { id: 'atmosphere', code: 'AI-STUDIO', name: '氛围编程', credits: 2, category: UNCATEGORIZED, status: 'active', color: '#9b6b9e', description: 'AI 辅助编程与学习工具实践。', resourceUrl: 'modules/module1.html' },
+  { id: 'macro', code: 'ECON', name: '中级宏观经济学', credits: 3, category: UNCATEGORIZED, status: 'planned', color: '#9b7137', description: '国民收入、经济增长与宏观政策。', resourceUrl: 'pdf/macro.html' }
 ];
 
 function currentTermDefaults(now = new Date()) {
@@ -64,12 +64,13 @@ function migrateLegacyCourses(defaults) {
   }));
   const normalizedUsers = users.map(course => ({
     ...course, code: course.code || '', credits: Number(course.credits ?? course.credit) || 0,
+    category: normalizeCourseCategory(course.category),
     status: course.status === 'in-progress' ? 'active' : course.status === 'upcoming' ? 'planned' : course.status,
     color: course.color || '#52627a'
   }));
   const map = new Map(base.map(course => [course.id, course]));
   normalizedUsers.forEach(course => map.set(course.id, { ...map.get(course.id), ...course }));
-  return [...map.values()];
+  return [...map.values()].map(course => ({ ...course, category: normalizeCourseCategory(course.category) }));
 }
 
 const DEFAULT_PERIODS = [
@@ -148,7 +149,7 @@ export function loadState() {
       profile: { ...defaults.profile, ...(existing.profile || {}) },
       settings: { ...defaults.settings, ...(existing.settings || {}), localThemeAssets: { ...(existing.settings?.localThemeAssets || {}) } },
       semester: { ...defaults.semester, ...(existing.semester || {}) },
-      courses: Array.isArray(existing.courses) ? existing.courses : defaults.courses,
+      courses: (Array.isArray(existing.courses) ? existing.courses : defaults.courses).map(course => ({ ...course, category: normalizeCourseCategory(course.category) })),
       tasks: Array.isArray(existing.tasks) ? existing.tasks : [],
       schedule: Array.isArray(existing.schedule) ? existing.schedule : [],
       grades: Array.isArray(existing.grades) ? existing.grades : [],

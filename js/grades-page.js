@@ -1,5 +1,5 @@
-import { loadState, updateState } from './store.js';
-import { createId, filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, parseGradeCsv, parsePkuGradeText } from './logic.js';
+import { loadState, updateState } from './store.js?v=20260822';
+import { UNCATEGORIZED, createId, filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, gradeSummaryForCategory, normalizeCourseCategory, parseGradeCsv, parsePkuGradeText } from './logic.js?v=20260822';
 import { fillCourseOptions, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
 
 let editingId = null;
@@ -12,8 +12,10 @@ function importGradeRecords(records) {
     records.forEach(record => {
       let course = draft.courses.find(item => item.name === record.courseName || (record.courseCode && item.code === record.courseCode));
       if (!course) {
-        course = { id: createId('course'), name: record.courseName, code: record.courseCode || '', credits: record.credits, category: '历史课程', status: 'completed', color: '#52627a', description: '' };
+        course = { id: createId('course'), name: record.courseName, code: record.courseCode || '', credits: record.credits, category: record.category || UNCATEGORIZED, status: 'completed', color: '#52627a', description: '' };
         draft.courses.push(course);
+      } else if (record.category) {
+        course.category = normalizeCourseCategory(record.category);
       }
       const payload = {
         ...record,
@@ -54,11 +56,14 @@ function openGrade(record = null) {
 function render() {
   const state = loadState();
   const summary = gradeSummary(state.grades, state.courses, state.settings.gpaEnabled, state.settings.gpaRule);
+  const professionalSummary = gradeSummaryForCategory(state.grades, state.courses, '专业必修', state.settings.gpaEnabled, state.settings.gpaRule);
   document.getElementById('gpaRuleLabel').textContent = state.settings.gpaRule === 'linear4' ? '当前：个人线性规则' : '当前：2019 版公式';
   document.getElementById('earnedCredits').textContent = summary.earnedCredits.toFixed(1).replace('.0', '');
   document.getElementById('weightedAverage').textContent = summary.weightedAverage === null ? '--' : summary.weightedAverage.toFixed(2);
   document.getElementById('estimatedGpa').textContent = formatGpa(summary.estimatedGpa);
   document.getElementById('gpaCredits').textContent = summary.gpaCredits.toFixed(1).replace('.0', '');
+  document.getElementById('professionalGpa').textContent = formatGpa(professionalSummary.estimatedGpa);
+  document.getElementById('professionalGpaCredits').textContent = professionalSummary.gpaCredits.toFixed(1).replace('.0', '');
   document.getElementById('gradeExclusionNote').textContent = summary.exclusions.length ? `${summary.exclusions.length} 条非百分制或手动排除记录未进入 GPA 估算。` : '当前百分制成绩均已进入 GPA 估算。';
   const terms = [...new Set(state.grades.map(record => record.term).filter(Boolean))].sort().reverse();
   const termFilter = document.getElementById('gradeTermFilter');
@@ -72,8 +77,8 @@ function render() {
     const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa ? formatGpa(gpaForScore(record.value, state.settings.gpaRule)) : '不纳入';
     const edit = node('button', { class: 'icon-btn', type: 'button', title: '编辑成绩', 'aria-label': `编辑 ${course?.name || '课程'} 成绩` }, [icon('pencil')]);
     edit.addEventListener('click', () => openGrade(record));
-    return node('tr', {}, [node('td', {}, [node('strong', { text: course?.name || record.courseName || '未知课程' }), node('small', { text: course?.code || '' })]), node('td', { text: record.term }), node('td', { text: String(record.credits) }), node('td', { text: record.gradingMode === 'percentage' ? '百分制' : record.gradingMode === 'letter' ? '等级制' : '合格制/状态' }), node('td', { class: 'grade-value', text: String(record.value) }), node('td', { text: estimate }), node('td', {}, [edit])]);
-  }) : [node('tr', {}, [node('td', { colspan: '7' }, [node('div', { class: 'empty-inline' }, [node('p', { text: '还没有正式成绩记录。' })])])])]));
+    return node('tr', {}, [node('td', {}, [node('strong', { text: course?.name || record.courseName || '未知课程' }), node('small', { text: course?.code || '' })]), node('td', { text: normalizeCourseCategory(course?.category || record.category) }), node('td', { text: record.term }), node('td', { text: String(record.credits) }), node('td', { text: record.gradingMode === 'percentage' ? '百分制' : record.gradingMode === 'letter' ? '等级制' : '合格制/状态' }), node('td', { class: 'grade-value', text: String(record.value) }), node('td', { text: estimate }), node('td', {}, [edit])]);
+  }) : [node('tr', {}, [node('td', { colspan: '8' }, [node('div', { class: 'empty-inline' }, [node('p', { text: '还没有正式成绩记录。' })])])])]));
   refreshIcons();
 }
 
@@ -128,9 +133,9 @@ function parsePortalInput() {
   const messages = [...parsed.errors.map(error => node('li', { class: 'error-copy', text: error })), ...parsed.warnings.map(warning => node('li', { text: warning }))];
   const preview = parsed.records.length ? node('div', { class: 'table-wrap import-table-wrap' }, [
     node('table', { class: 'data-table compact-table' }, [
-      node('thead', {}, [node('tr', {}, ['课程', '学期', '学分', '成绩'].map(text => node('th', { text })))]),
+      node('thead', {}, [node('tr', {}, ['课程', '课程类别', '学期', '学分', '成绩'].map(text => node('th', { text })))]),
       node('tbody', {}, parsed.records.map(record => node('tr', {}, [
-        node('td', { text: record.courseName }), node('td', { text: record.term || '当前学期' }),
+        node('td', { text: record.courseName }), node('td', { text: record.category || '未分类' }), node('td', { text: record.term || '当前学期' }),
         node('td', { text: String(record.credits) }), node('td', { class: 'grade-value', text: String(record.value) })
       ])))
     ])
