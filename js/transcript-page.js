@@ -1,5 +1,5 @@
 import { filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, gradeSummaryForCategory, groupGradesByTerm, normalizeCourseCategory, serializeGradeTranscriptCsv, splitGradesByCategory } from './logic.js?v=20260822';
-import { loadState } from './store.js?v=20260822';
+import { loadState, updateState } from './store.js?v=20260822';
 import { node, refreshIcons } from './ui.js';
 
 const state = loadState();
@@ -67,12 +67,13 @@ function render() {
   const professionalSummary = gradeSummaryForCategory(records, state.courses, '专业必修', state.settings.gpaEnabled, state.settings.gpaRule);
   const summary = gradeSummary(records, state.courses, state.settings.gpaEnabled, state.settings.gpaRule);
   document.getElementById('transcriptScope').textContent = `输出范围：${scope}`;
-  document.getElementById('studentName').textContent = profile.displayName || '未设置';
+  document.getElementById('studentNameInput').value = profile.displayName || '';
   document.getElementById('studentDepartment').textContent = profile.department || '未设置';
   document.getElementById('studentCohort').textContent = profile.cohort ? `${profile.cohort} 级` : '未设置';
   document.getElementById('generatedAt').textContent = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', dateStyle: 'medium' }).format(new Date());
   document.getElementById('recordCount').textContent = `${records.length} 条记录 · 百分制平均分保留两位`;
   document.getElementById('professionalRecordCount').textContent = `${professionalRecords.length} 条记录`;
+  document.getElementById('nonProfessionalRecordCount').textContent = `${otherRecords.length} 条记录`;
   document.getElementById('professionalGpaSummary').replaceChildren(
     node('span', { text: `纳入 ${formatCredits(professionalSummary.gpaCredits)} 学分` }),
     node('span', { text: `百分制平均 ${professionalSummary.weightedAverage === null ? '--' : professionalSummary.weightedAverage.toFixed(2)}` }),
@@ -97,6 +98,13 @@ function render() {
 }
 
 document.getElementById('printTranscript').addEventListener('click', () => window.print());
+document.getElementById('studentNameInput').addEventListener('change', event => {
+  const displayName = event.currentTarget.value.trim();
+  updateState(draft => {
+    draft.profile.displayName = displayName;
+  });
+  event.currentTarget.value = displayName;
+});
 document.getElementById('downloadTranscriptCsv').addEventListener('click', () => {
   const blob = new Blob([serializeGradeTranscriptCsv(records, state.courses, state.settings.gpaRule)], { type: 'text/csv;charset=utf-8' });
   const link = document.createElement('a');

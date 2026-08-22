@@ -45,6 +45,10 @@ test('transcript page exposes print and CSV export controls', async () => {
   assert.match(script, /serializeGradeTranscriptCsv/);
   assert.match(script, /window\.print/);
   assert.match(script, /professionalRecords/);
+  assert.match(html, /id="studentNameInput"/);
+  assert.match(script, /updateState/);
+  assert.match(html, /非专业必修/);
+  assert.match(script, /nonProfessionalRecordCount/);
   assert.match(script, /termGroups/);
 });
 
