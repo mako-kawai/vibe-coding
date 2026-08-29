@@ -1,4 +1,4 @@
-import { UNCATEGORIZED, createId, dedupeScheduleEvents, mergeState, migrateLegacyTasks, normalizeCourseCategory } from './logic.js?v=20260822';
+import { UNCATEGORIZED, createId, dedupeScheduleEvents, mergeState, migrateLegacyTasks, normalizeCourseCategory, normalizePublicContentItem, normalizePublicSite } from './logic.js?v=20260829';
 
 export const STATE_KEY = 'mako_learning_v2';
 export const STATE_EVENT = 'mako:state-change';
@@ -37,8 +37,16 @@ export function createDefaultState() {
       sidebarImageSaturation: 85, sidebarImageBrightness: 72
     },
     semester: currentTermDefaults(),
+      publicSite: normalizePublicSite({
+      name: 'mako',
+      headline: '在物理、代码与阅读之间做长期记录',
+      bio: '记录正在学习、正在制作和正在阅读的事物。',
+      focus: ['物理学习', '科学计算', '阅读记录'],
+      links: [{ label: 'GitHub', url: 'https://github.com/mako-kawai' }],
+      featuredProjectIds: ['project-earth-axis', 'project-learning-cockpit', 'project-python']
+    }),
     courses: COURSE_SEEDS.map(course => ({ ...course })),
-    tasks: [], schedule: [], grades: [], notes: [], tags: [], focusSession: null,
+    tasks: [], schedule: [], grades: [], notes: [], tags: [], publicContent: [], focusSession: null,
     lastBackupAt: null, updatedAt: new Date().toISOString()
   };
 }
@@ -155,6 +163,8 @@ export function loadState() {
       grades: Array.isArray(existing.grades) ? existing.grades : [],
       notes: Array.isArray(existing.notes) ? existing.notes : [],
       tags: Array.isArray(existing.tags) ? existing.tags : [],
+      publicSite: normalizePublicSite({ ...defaults.publicSite, ...(existing.publicSite || {}) }),
+      publicContent: Array.isArray(existing.publicContent) ? existing.publicContent.map(normalizePublicContentItem) : [],
       focusSession: existing.focusSession && typeof existing.focusSession === 'object' ? existing.focusSession : null
     };
     if (JSON.stringify(normalized) !== JSON.stringify(existing)) localStorage.setItem(STATE_KEY, JSON.stringify(normalized));

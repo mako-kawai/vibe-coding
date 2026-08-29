@@ -1,7 +1,7 @@
 {
-  "name": "mako's Learning · 北大物理学习驾驶舱",
-  "short_name": "物理驾驶舱",
-  "description": "面向物理本科生日常任务、课程、笔记、日程与正式成绩的本地优先学习驾驶舱。",
+  "name": "mako's archive · 个人档案与学习驾驶舱",
+  "short_name": "mako's archive",
+  "description": "个人项目、阅读记录与北大物理学习驾驶舱。",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",

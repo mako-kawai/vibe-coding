@@ -1,5 +1,5 @@
-import { loadState, updateState } from './store.js?v=20260822';
-import { UNCATEGORIZED, createId, filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, gradeSummaryForCategory, normalizeCourseCategory, parseGradeCsv, parsePkuGradeText } from './logic.js?v=20260822';
+import { loadState, updateState } from './store.js?v=20260829';
+import { UNCATEGORIZED, createId, filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, gradeSummaryForCategory, isGpaEligibleRecord, normalizeCourseCategory, parseGradeCsv, parsePkuGradeText } from './logic.js?v=20260829';
 import { fillCourseOptions, icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
 
 let editingId = null;
@@ -10,23 +10,32 @@ function importGradeRecords(records) {
   let updated = 0;
   updateState(draft => {
     records.forEach(record => {
+      const rawValue = record.value ?? '';
+      const mode = record.gradingMode || (/^\d+(?:\.\d+)?$/.test(String(rawValue)) ? 'percentage' : 'letter');
       let course = draft.courses.find(item => item.name === record.courseName || (record.courseCode && item.code === record.courseCode));
       if (!course) {
-        course = { id: createId('course'), name: record.courseName, code: record.courseCode || '', credits: record.credits, category: record.category || UNCATEGORIZED, status: 'completed', color: '#52627a', description: '' };
+        course = { id: createId('course'), name: record.courseName, code: record.courseCode || '', credits: record.credits, category: normalizeCourseCategory(record.category || UNCATEGORIZED), status: 'completed', color: '#52627a', description: '' };
         draft.courses.push(course);
       } else if (record.category) {
         course.category = normalizeCourseCategory(record.category);
       }
       const payload = {
-        ...record,
         courseId: course.id,
         term: record.term || draft.semester.name,
-        excludedFromGpa: record.gradingMode !== 'percentage',
+        credits: Number(record.credits) || Number(course.credits) || 0,
+        gradingMode: mode,
+        value: mode === 'percentage' ? Number(rawValue) : String(rawValue).toUpperCase(),
+        status: String(record.status || (mode === 'percentage' ? '' : rawValue) || '').toUpperCase(),
+        repeated: Boolean(record.repeated),
+        excludedFromGpa: mode !== 'percentage',
         recordedAt: new Date().toISOString()
       };
       const existing = draft.grades.find(item => item.courseId === course.id && item.term === payload.term);
       if (existing) {
         Object.assign(existing, payload, { id: existing.id, excludedFromGpa: existing.excludedFromGpa || payload.excludedFromGpa });
+        delete existing.category;
+        delete existing.courseName;
+        delete existing.courseCode;
         updated += 1;
       } else {
         draft.grades.push({ ...payload, id: createId('grade') });
@@ -74,7 +83,7 @@ function render() {
   const body = document.getElementById('gradeTableBody');
   body.replaceChildren(...(records.length ? records.map(record => {
     const course = state.courses.find(item => item.id === record.courseId);
-    const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa ? formatGpa(gpaForScore(record.value, state.settings.gpaRule)) : '不纳入';
+    const estimate = isGpaEligibleRecord(record, state.settings.gpaEnabled !== false) ? formatGpa(gpaForScore(record.value, state.settings.gpaRule)) : '不纳入';
     const edit = node('button', { class: 'icon-btn', type: 'button', title: '编辑成绩', 'aria-label': `编辑 ${course?.name || '课程'} 成绩` }, [icon('pencil')]);
     edit.addEventListener('click', () => openGrade(record));
     return node('tr', {}, [node('td', {}, [node('strong', { text: course?.name || record.courseName || '未知课程' }), node('small', { text: course?.code || '' })]), node('td', { text: normalizeCourseCategory(course?.category || record.category) }), node('td', { text: record.term }), node('td', { text: String(record.credits) }), node('td', { text: record.gradingMode === 'percentage' ? '百分制' : record.gradingMode === 'letter' ? '等级制' : '合格制/状态' }), node('td', { class: 'grade-value', text: String(record.value) }), node('td', { text: estimate }), node('td', {}, [edit])]);

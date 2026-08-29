@@ -1,7 +1,7 @@
 import { assetUrl, getAsset, loadState, migrateLegacyNotes, updateState } from './store.js';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', href: 'index.html', icon: 'layout-dashboard', label: '总览' },
+  { id: 'dashboard', href: 'dashboard.html', icon: 'layout-dashboard', label: '总览' },
   { id: 'tasks', href: 'tasks.html', icon: 'list-checks', label: '任务' },
   { id: 'courses', href: 'courses.html', icon: 'library-big', label: '课程' },
   { id: 'notes', href: 'notes.html', icon: 'notebook-pen', label: '笔记' },
@@ -35,7 +35,7 @@ export function refreshIcons() {
 function renderShell(page) {
   const state = loadState();
   const sidebar = node('aside', { class: 'app-sidebar' });
-  const brand = node('a', { class: 'brand', href: 'index.html', 'aria-label': 'mako learning 总览' }, [
+  const brand = node('a', { class: 'brand', href: 'dashboard.html', 'aria-label': 'mako learning 学习驾驶舱' }, [
     node('span', { class: 'brand-mark', text: (state.profile.displayName || 'M').trim().charAt(0).toUpperCase() || 'M' }),
     node('span', { class: 'brand-copy' }, [
       node('strong', { text: "mako's learning" }),
@@ -66,6 +66,7 @@ function renderShell(page) {
       node('span', { class: 'chapter-label', text: `CHAPTER / ${NAV_ITEMS.find(item => item.id === page)?.label || '学习'}` }),
       node('span', { class: 'offline-state', id: 'networkState', text: navigator.onLine ? 'ONLINE' : 'OFFLINE' })
     ]),
+    node('a', { class: 'topbar-home-link', href: 'index.html' }, [icon('user-round', 15), node('span', { text: '个人主页' })])
   ]);
   document.body.prepend(sidebar, header);
 

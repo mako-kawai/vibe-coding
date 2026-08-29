@@ -1,5 +1,5 @@
-import { filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, gradeSummaryForCategory, groupGradesByTerm, normalizeCourseCategory, serializeGradeTranscriptCsv, splitGradesByCategory } from './logic.js?v=20260822';
-import { loadState, updateState } from './store.js?v=20260822';
+import { filterGradesByTerm, formatGpa, gpaForScore, gradeSummary, gradeSummaryForCategory, groupGradesByTerm, isGpaEligibleRecord, normalizeCourseCategory, serializeGradeTranscriptCsv, splitGradesByCategory } from './logic.js?v=20260829';
+import { loadState, updateState } from './store.js?v=20260829';
 import { node, refreshIcons } from './ui.js';
 
 const state = loadState();
@@ -17,7 +17,7 @@ function modeLabel(mode) {
 }
 
 function gradeEstimate(record) {
-  return record.gradingMode === 'percentage' && !record.excludedFromGpa
+  return isGpaEligibleRecord(record, state.settings.gpaEnabled !== false)
     ? formatGpa(gpaForScore(record.value, state.settings.gpaRule))
     : '不纳入';
 }

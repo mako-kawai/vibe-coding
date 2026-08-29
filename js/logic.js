@@ -17,6 +17,17 @@ export const SPECIAL_GRADES = new Set(['P', 'NP', 'EX', 'I', 'IP', 'W', 'F']);
 
 export const COURSE_CATEGORIES = ['专业任选', '全校任选', '全校必修', '专业必修', '任选', '通选课'];
 export const UNCATEGORIZED = '未分类';
+export const PUBLIC_CONTENT_TYPES = ['project', 'review', 'interest', 'note'];
+export const PUBLIC_CONTENT_STATUSES = ['draft', 'ready', 'published'];
+
+const PUBLIC_SITE_DEFAULTS = {
+  name: 'mako',
+  headline: '在物理、代码与阅读之间做长期记录',
+  bio: '记录正在学习、正在制作和正在阅读的事物。',
+  focus: ['物理学习', '科学计算', '阅读记录'],
+  links: [{ label: 'GitHub', url: 'https://github.com/mako-kawai' }],
+  featuredProjectIds: []
+};
 
 export function normalizeCourseCategory(value) {
   const text = String(value || '').trim();
@@ -24,6 +35,106 @@ export function normalizeCourseCategory(value) {
   if (text === '专业选修') return '专业任选';
   if (text === '全校任选课') return '全校任选';
   return UNCATEGORIZED;
+}
+
+export function slugifyPublic(value, fallback = 'item') {
+  const text = String(value || '').normalize('NFKC').trim().toLowerCase();
+  const slug = text.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+  const safeFallback = String(fallback || 'item').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+  return slug || safeFallback || 'item';
+}
+
+export function safePublicUrl(value, { relative = true } = {}) {
+  const text = String(value || '').trim();
+  if (!text || /[\u0000-\u001F\u007F]/.test(text) || /^(?:javascript|data|vbscript):/i.test(text)) return '';
+  if (/^https?:\/\//i.test(text)) return text;
+  if (relative && !/^(?:\/\/|\/|[a-z][a-z\d+.-]*:)/i.test(text)) return text;
+  return '';
+}
+
+export function safePublicPath(value) {
+  const text = safePublicUrl(value);
+  if (!text || /^https?:\/\//i.test(text) || text.startsWith('#') || text.startsWith('?')) return '';
+  let decoded;
+  try { decoded = decodeURIComponent(text); } catch { return ''; }
+  if (/[\u0000-\u001F\u007F]/.test(decoded) || decoded.startsWith('#') || decoded.startsWith('?')) return '';
+  const parts = decoded.replace(/\\/g, '/').split('/');
+  if (parts.some(part => part === '..' || part === '.')) return '';
+  return parts.filter(Boolean).join('/');
+}
+
+export function safePublicAssetUrl(value) {
+  const external = safePublicUrl(value, { relative: false });
+  return external || safePublicPath(value);
+}
+
+export function normalizePublicSite(value = {}) {
+  const source = value && typeof value === 'object' ? value : {};
+  const links = Array.isArray(source.links) ? source.links.map(link => ({
+    label: String(link?.label || '').trim(), url: safePublicUrl(link?.url)
+  })).filter(link => link.label && link.url) : PUBLIC_SITE_DEFAULTS.links.map(link => ({ ...link }));
+  return {
+    name: String(source.name || PUBLIC_SITE_DEFAULTS.name).trim() || PUBLIC_SITE_DEFAULTS.name,
+    headline: String(source.headline || PUBLIC_SITE_DEFAULTS.headline).trim(),
+    bio: String(source.bio || PUBLIC_SITE_DEFAULTS.bio).trim(),
+    avatar: safePublicAssetUrl(source.avatar),
+    avatarAssetId: String(source.avatarAssetId || ''),
+    focus: Array.isArray(source.focus) ? source.focus.map(item => String(item || '').trim()).filter(Boolean).slice(0, 12) : [...PUBLIC_SITE_DEFAULTS.focus],
+    links,
+    featuredProjectIds: Array.isArray(source.featuredProjectIds) ? source.featuredProjectIds.map(item => String(item || '').trim()).filter(Boolean).slice(0, 8) : [...PUBLIC_SITE_DEFAULTS.featuredProjectIds],
+    updatedAt: source.updatedAt || null
+  };
+}
+
+export function normalizePublicContentItem(value = {}) {
+  const source = value && typeof value === 'object' ? value : {};
+  const type = PUBLIC_CONTENT_TYPES.includes(source.type) ? source.type : 'project';
+  const status = PUBLIC_CONTENT_STATUSES.includes(source.status) ? source.status : 'draft';
+  const links = Array.isArray(source.links) ? source.links.map(link => ({
+    label: String(link?.label || '').trim(), url: safePublicUrl(link?.url)
+  })).filter(link => link.label && link.url) : [];
+  const tags = Array.isArray(source.tags) ? source.tags : String(source.tags || '').split(',');
+  const stack = Array.isArray(source.stack) ? source.stack : String(source.stack || '').split(',');
+  const highlights = Array.isArray(source.highlights) ? source.highlights : String(source.highlights || '').split(/\r?\n/);
+  return {
+    id: String(source.id || createId('public')),
+    type,
+    slug: slugifyPublic(source.slug || source.title, type),
+    title: String(source.title || '未命名内容').trim(),
+    summary: String(source.summary || '').trim(),
+    tags: tags.map(item => String(item || '').trim()).filter(Boolean).slice(0, 16),
+    cover: safePublicAssetUrl(source.cover),
+    coverAssetId: String(source.coverAssetId || ''),
+    status,
+    publishedAt: source.publishedAt || null,
+    bodyPath: safePublicPath(source.bodyPath),
+    bodyAssetId: String(source.bodyAssetId || ''),
+    sourceNoteId: String(source.sourceNoteId || ''),
+    links,
+    projectStatus: String(source.projectStatus || '').trim(),
+    stack: stack.map(item => String(item || '').trim()).filter(Boolean).slice(0, 16),
+    highlights: highlights.map(item => String(item || '').trim()).filter(Boolean).slice(0, 12),
+    sourceUrl: safePublicUrl(source.sourceUrl),
+    demoUrl: safePublicUrl(source.demoUrl),
+    author: String(source.author || '').trim(),
+    readingDate: String(source.readingDate || '').trim(),
+    rating: source.rating === '' || source.rating === null || source.rating === undefined ? null : Number.isFinite(Number(source.rating)) ? Math.min(5, Math.max(0, Number(source.rating))) : null,
+    spoiler: source.spoiler === true || String(source.spoiler || '').toLowerCase() === 'true',
+    updatedAt: source.updatedAt || new Date().toISOString()
+  };
+}
+
+export function publicItemToManifest(item) {
+  const normalized = normalizePublicContentItem(item);
+  const bodyPath = safePublicPath(normalized.bodyPath) || `${normalized.type}s/${normalized.slug}.md`;
+  const { bodyAssetId, coverAssetId, sourceNoteId, ...manifestItem } = normalized;
+  return { ...manifestItem, bodyPath };
+}
+
+export function publicSiteToManifest(site) {
+  const normalized = normalizePublicSite(site);
+  const { avatarAssetId, ...manifestSite } = normalized;
+  return manifestSite;
 }
 
 export function createId(prefix = 'item') {
@@ -108,6 +219,12 @@ export function gpaForScore(score, rule = 'pku2019') {
   return legacyPkuGpa(score);
 }
 
+export function isGpaEligibleRecord(record, gpaEnabled = true) {
+  if (!gpaEnabled || (record?.gradingMode || 'percentage') !== 'percentage' || record?.excludedFromGpa) return false;
+  const value = Number(record.value);
+  return Number.isFinite(value) && value >= 60 && value <= 100;
+}
+
 export function formatGpa(value) {
   if (value === null || value === undefined || value === '') return '--';
   const number = Number(value);
@@ -151,7 +268,7 @@ export function serializeGradeTranscriptCsv(records = [], courses = [], gpaRule 
     ['课程代码', '课程名称', '课程类别', '学期', '学分', '记分方式', '成绩', '绩点估算'],
     ...records.map(record => {
       const course = courseMap.get(record.courseId);
-      const estimate = record.gradingMode === 'percentage' && !record.excludedFromGpa
+      const estimate = isGpaEligibleRecord(record)
         ? formatGpa(gpaForScore(record.value, gpaRule))
         : '不纳入';
       return [
@@ -184,11 +301,11 @@ export function gradeSummary(records, courses = [], gpaEnabled = true, gpaRule =
     if (mode === 'percentage' && Number.isFinite(value)) {
       weightedScore += value * credits;
       percentageCredits += credits;
-      if (gpaEnabled && !record.excludedFromGpa) {
+      if (isGpaEligibleRecord(record, gpaEnabled)) {
         gpaPoints += gpaForScore(value, gpaRule) * credits;
         gpaCredits += credits;
-      } else if (record.excludedFromGpa) {
-        exclusions.push({ id: record.id, reason: '已手动排除' });
+      } else if (gpaEnabled) {
+        exclusions.push({ id: record.id, reason: record.excludedFromGpa ? '已手动排除' : value < 60 ? '不及格成绩不纳入估算' : '成绩无效' });
       }
     } else {
       exclusions.push({ id: record.id, reason: '非百分制成绩不参与旧公式估算' });
@@ -478,13 +595,19 @@ export function mergeState(current, incoming) {
     ...incoming,
     version: 2,
     profile: { ...current.profile, ...incoming.profile },
-    settings: { ...current.settings, ...incoming.settings },
+    settings: {
+      ...current.settings,
+      ...incoming.settings,
+      localThemeAssets: { ...(current.settings?.localThemeAssets || {}), ...(incoming.settings?.localThemeAssets || {}) }
+    },
     semester: { ...current.semester, ...incoming.semester },
     courses: mergeById(current.courses, incoming.courses),
     tasks: mergeById(current.tasks, incoming.tasks),
     schedule: dedupeScheduleEvents([...(current.schedule || []), ...(incoming.schedule || [])]),
     grades: mergeById(current.grades, incoming.grades),
     notes: mergeById(current.notes, incoming.notes),
-    tags: mergeById(current.tags, incoming.tags)
+    tags: mergeById(current.tags, incoming.tags),
+    publicSite: normalizePublicSite({ ...(current.publicSite || {}), ...(incoming.publicSite || {}) }),
+    publicContent: mergeById(current.publicContent, incoming.publicContent).map(normalizePublicContentItem)
   };
 }

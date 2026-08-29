@@ -1,5 +1,5 @@
 import { assetUrl, deleteAsset, getAsset, getAssets, loadState, putAsset, updateState } from './store.js';
-import { createId, parseNoteMarkdown, serializeNoteMarkdown } from './logic.js';
+import { createId, normalizePublicContentItem, parseNoteMarkdown, serializeNoteMarkdown, slugifyPublic } from './logic.js';
 import { fillCourseOptions, icon, initApp, node, refreshIcons, toast } from './ui.js';
 
 const DERIVATION_TEMPLATE = `# 推导目标
@@ -98,7 +98,7 @@ function renderList() {
     const button = node('button', { class: `note-index-item${currentId === note.id ? ' active' : ''}`, type: 'button' }, [
       node('strong', { text: note.title }),
       node('span', { text: note.chapter || course?.name || '未分类' }),
-      node('small', { text: new Date(note.updatedAt).toLocaleDateString('zh-CN') })
+      node('small', { text: `${new Date(note.updatedAt).toLocaleDateString('zh-CN')}${note.publicStatus === 'published' ? ' · 已发布' : ''}` })
     ]);
     button.addEventListener('click', () => selectNote(note.id));
     return button;
@@ -124,6 +124,8 @@ async function selectNote(id) {
   document.getElementById('noteTags').value = (note.tags || []).join(', ');
   document.getElementById('noteContent').value = content;
   document.getElementById('exportNoteButton').disabled = false;
+  document.getElementById('publishNoteButton').disabled = false;
+  updatePublicControls(note);
   renderMarkdown(content);
   dirty = false;
   updateStatus(); renderList(); await renderAttachments(); refreshIcons();
@@ -152,6 +154,75 @@ function updateStatus() {
   const content = document.getElementById('noteContent').value;
   document.getElementById('noteStatus').textContent = dirty ? '有未保存更改' : '已保存到本地';
   document.getElementById('noteWordCount').textContent = `${content.replace(/\s/g, '').length} 字`;
+}
+
+function publicSnapshotFor(note, state = loadState()) {
+  return state.publicContent.find(item => item.id === note.publicContentId || item.sourceNoteId === note.id) || null;
+}
+
+function updatePublicControls(note) {
+  const published = note?.publicStatus === 'published' && Boolean(publicSnapshotFor(note));
+  const publishButton = document.getElementById('publishNoteButton');
+  const revokeButton = document.getElementById('unpublishNoteButton');
+  publishButton.disabled = !note;
+  publishButton.querySelector('span').textContent = published ? '更新公开快照' : '发布为公开笔记';
+  revokeButton.classList.toggle('hidden', !published);
+  document.getElementById('notePublicStatus').textContent = published ? '已有公开快照' : '仅本地保存';
+}
+
+function publicSummary(markdown) {
+  return String(markdown || '').replace(/^\s*#+\s*/gm, '').replace(/[>*_`~\[\]()]/g, '').replace(/\s+/g, ' ').trim().slice(0, 180);
+}
+
+async function publishCurrentNote() {
+  if (!currentId) return;
+  const state = loadState();
+  const note = state.notes.find(item => item.id === currentId);
+  if (!note) return;
+  if (!confirm('将当前笔记生成公开快照？课程名称、附件和本地数据不会自动公开。')) return;
+  const content = document.getElementById('noteContent').value;
+  const existing = publicSnapshotFor(note, state);
+  const id = existing?.id || createId('public');
+  const item = normalizePublicContentItem({
+    ...existing,
+    id,
+    type: 'note',
+    slug: existing?.slug || slugifyPublic(note.title, 'note'),
+    title: document.getElementById('noteTitle').value.trim() || note.title,
+    summary: publicSummary(content),
+    tags: document.getElementById('noteTags').value.split(',').map(value => value.trim()).filter(Boolean),
+    status: 'published',
+    publishedAt: existing?.publishedAt || new Date().toISOString().slice(0, 10),
+    sourceNoteId: currentId,
+    bodyAssetId: `public_${id}`
+  });
+  await putAsset({ id: item.bodyAssetId, kind: 'public-content', publicContentId: id, data: content, mimeType: 'text/markdown' });
+  updateState(draft => {
+    const target = draft.notes.find(entry => entry.id === currentId);
+    target.publicStatus = 'published'; target.publicContentId = id;
+    const index = draft.publicContent.findIndex(entry => entry.id === id);
+    if (index < 0) draft.publicContent.push(item); else draft.publicContent[index] = item;
+  });
+  updatePublicControls({ ...note, publicStatus: 'published', publicContentId: id });
+  renderList();
+  toast('已生成公开笔记快照，请在内容工作台导出发布包', 'success');
+}
+
+async function unpublishCurrentNote() {
+  if (!currentId) return;
+  const state = loadState();
+  const note = state.notes.find(item => item.id === currentId);
+  const snapshot = note && publicSnapshotFor(note, state);
+  if (!snapshot || !confirm('撤回公开快照？已提交到仓库的公开文件需要重新导出并提交删除。')) return;
+  await deleteAsset(snapshot.bodyAssetId || `public_${snapshot.id}`);
+  updateState(draft => {
+    const target = draft.notes.find(entry => entry.id === currentId);
+    target.publicStatus = 'private'; delete target.publicContentId;
+    draft.publicContent = draft.publicContent.filter(entry => entry.id !== snapshot.id);
+  });
+  updatePublicControls({ ...note, publicStatus: 'private' });
+  renderList();
+  toast('公开快照已撤回');
 }
 
 async function saveNote() {
@@ -245,6 +316,8 @@ document.getElementById('noteContent').addEventListener('input', event => {
   dirty = true; renderMarkdown(event.target.value); updateStatus();
 });
 ['noteTitle', 'noteChapter', 'noteTags'].forEach(id => document.getElementById(id).addEventListener('input', () => { dirty = true; updateStatus(); }));
+document.getElementById('publishNoteButton').addEventListener('click', publishCurrentNote);
+document.getElementById('unpublishNoteButton').addEventListener('click', unpublishCurrentNote);
 document.getElementById('saveNoteButton').addEventListener('click', saveNote);
 document.getElementById('addNoteButton').addEventListener('click', createNote);
 document.getElementById('addAttachmentButton').addEventListener('click', () => document.getElementById('attachmentInput').click());
@@ -265,12 +338,21 @@ document.getElementById('insertTemplateButton').addEventListener('click', () => 
 document.getElementById('deleteNoteButton').addEventListener('click', async () => {
   if (!currentId || !confirm('确定删除这篇笔记？')) return;
   const deleted = currentId;
-  updateState(draft => { draft.notes = draft.notes.filter(note => note.id !== deleted); });
+  const state = loadState();
+  const snapshot = state.notes.find(note => note.id === deleted) && publicSnapshotFor(state.notes.find(note => note.id === deleted), state);
+  updateState(draft => {
+    draft.notes = draft.notes.filter(note => note.id !== deleted);
+    if (snapshot) draft.publicContent = draft.publicContent.filter(item => item.id !== snapshot.id);
+  });
   await deleteAsset(`note_${deleted}`);
+  if (snapshot) await deleteAsset(snapshot.bodyAssetId || `public_${snapshot.id}`);
   const attachments = (await getAssets('file')).filter(record => record.noteId === deleted);
   await Promise.all(attachments.map(record => deleteAsset(record.id)));
   contentCache.delete(deleted); currentId = null; dirty = false;
   document.getElementById('exportNoteButton').disabled = true;
+  document.getElementById('publishNoteButton').disabled = true;
+  document.getElementById('unpublishNoteButton').classList.add('hidden');
+  document.getElementById('notePublicStatus').textContent = '';
   document.getElementById('noteDocument').classList.add('hidden'); document.getElementById('emptyNote').classList.remove('hidden'); renderList();
 });
 document.getElementById('noteCourseFilter').addEventListener('change', renderList);

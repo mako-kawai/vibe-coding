@@ -1,5 +1,5 @@
-import { loadState, updateState } from './store.js?v=20260822';
-import { createId, formatDateTime, normalizeCourseCategory } from './logic.js?v=20260822';
+import { loadState, updateState } from './store.js?v=20260829';
+import { createId, formatDateTime, normalizeCourseCategory } from './logic.js?v=20260829';
 import { icon, initApp, node, openDialog, refreshIcons, toast } from './ui.js';
 
 let statusFilter = 'active';

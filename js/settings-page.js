@@ -20,7 +20,7 @@ async function buildBackupBlob(state = loadState(), records = null) {
   zip.file('state.json', JSON.stringify(state, null, 2));
   const index = [];
   assets.filter(record => record.kind !== 'snapshot').forEach((record, position) => {
-    const extension = record.kind === 'note' ? 'md' : 'bin';
+    const extension = ['note', 'public-content'].includes(record.kind) ? 'md' : 'bin';
     const path = `assets/${position}_${record.id.replace(/[^a-zA-Z0-9_-]/g, '_')}.${extension}`;
     zip.file(path, record.data);
     const { data, ...metadata } = record;
@@ -130,36 +130,78 @@ async function readBackup(file) {
   const state = JSON.parse(await stateFile.async('string'));
   const indexFile = zip.file('assets/index.json');
   const index = indexFile ? JSON.parse(await indexFile.async('string')) : [];
+  if (!Array.isArray(index)) throw new Error('备份文件索引无效');
+  if (!state || typeof state !== 'object' || Number(state.version) !== 2) throw new Error('备份状态无效');
   return { zip, state, index, manifest };
 }
 
-async function restoreAssets(backup, mode) {
-  if (mode === 'replace') {
-    const current = await getAssets();
-    await Promise.all(current.filter(record => record.kind !== 'snapshot').map(record => deleteAsset(record.id)));
-  }
+async function readBackupAssets(backup) {
+  const ids = new Set();
+  const records = [];
   for (const metadata of backup.index) {
+    if (!metadata || typeof metadata !== 'object' || !metadata.id || typeof metadata.path !== 'string' || !metadata.path || metadata.path.includes('..')) {
+      throw new Error('备份文件索引包含无效条目');
+    }
+    if (ids.has(metadata.id)) throw new Error(`备份中存在重复文件：${metadata.id}`);
+    ids.add(metadata.id);
     const file = backup.zip.file(metadata.path);
-    if (!file) continue;
+    if (!file) throw new Error(`备份缺少文件：${metadata.path}`);
     const data = metadata.encoding === 'text' ? await file.async('string') : await file.async('uint8array');
-    const { path, encoding, ...record } = metadata;
-    await putAsset({ ...record, data });
+    records.push({ ...metadata, data });
+  }
+  return records;
+}
+
+async function replaceAssetRecords(records) {
+  const current = await getAssets();
+  await Promise.all(current.filter(record => record.kind !== 'snapshot').map(record => deleteAsset(record.id)));
+  for (const record of records) {
+    const { path, encoding, ...rest } = record;
+    await putAsset(rest);
   }
 }
 
 async function performRestore(mode) {
   if (!pendingBackup) return;
+  const beforeState = loadState();
+  const beforeAssets = await getAssets();
+  let mutated = false;
   try {
+    const stagedAssets = await readBackupAssets(pendingBackup);
     if (mode === 'replace') {
-      const snapshot = await buildBackupBlob(loadState(), await getAssets());
+      const snapshot = await buildBackupBlob(beforeState, beforeAssets);
+      mutated = true;
       await putAsset({ id: createId('snapshot'), kind: 'snapshot', data: snapshot, mimeType: 'application/zip', reason: 'pre-import' });
     }
-    await restoreAssets(pendingBackup, mode);
+    if (mode === 'replace') {
+      mutated = true;
+      await replaceAssetRecords(stagedAssets);
+    } else {
+      mutated = true;
+      for (const record of stagedAssets) {
+        const { path, encoding, ...rest } = record;
+        await putAsset(rest);
+      }
+    }
+    mutated = true;
     importState(pendingBackup.state, mode);
+    pendingBackup = null;
     document.getElementById('backupImportDialog').close();
     toast(mode === 'replace' ? '备份已替换当前数据' : '备份已合并', 'success');
     setTimeout(() => location.reload(), 500);
-  } catch (error) { toast(`恢复失败：${error.message}`, 'error'); }
+  } catch (error) {
+    if (!mutated) {
+      toast(`恢复失败，未修改当前数据：${error.message}`, 'error');
+      return;
+    }
+    try {
+      await replaceAssetRecords(beforeAssets.filter(record => record.kind !== 'snapshot'));
+      importState(beforeState, 'replace');
+      toast(`恢复失败，已回滚原数据：${error.message}`, 'error');
+    } catch (rollbackError) {
+      toast(`恢复失败且自动回滚异常：${rollbackError.message}`, 'error');
+    }
+  }
 }
 
 document.getElementById('profileForm').addEventListener('submit', async event => {

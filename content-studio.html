@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8f2f3a">
+  <title>内容工作台 · mako's learning</title>
+  <link rel="stylesheet" href="styles.css?v=20260829">
+  <link rel="stylesheet" href="vendor/katex.min.css">
+  <script defer src="vendor/lucide.min.js"></script><script defer src="vendor/marked.min.js"></script><script defer src="vendor/purify.min.js"></script><script defer src="vendor/katex.min.js"></script><script defer src="vendor/auto-render.min.js"></script><script defer src="vendor/jszip.min.js"></script>
+  <script type="module" src="js/content-studio.js?v=20260829"></script>
+</head>
+<body data-page="settings">
+  <main class="workspace content-studio-workspace">
+    <section class="page-heading compact"><div><span class="eyebrow">PUBLIC CONTENT STUDIO</span><h1>公开内容工作台</h1><p class="page-lead">草稿和发布包只保存在当前浏览器；导出后请审阅再提交到仓库。</p></div><div class="heading-actions"><a class="secondary-action" href="index.html"><i data-lucide="user-round"></i>个人主页</a><button id="exportPublicPackage" class="primary-action" type="button"><i data-lucide="package-check"></i>导出发布包</button><input id="importPublicPackageInput" class="visually-hidden" type="file" accept=".zip,application/zip"><button id="importPublicPackage" class="secondary-action" type="button"><i data-lucide="folder-up"></i>导入内容包</button></div></section>
+
+    <div class="content-studio-grid">
+      <section class="panel public-site-editor-panel">
+        <div class="panel-head"><div><span class="eyebrow">PUBLIC PROFILE</span><h2>公开档案</h2></div></div>
+        <form id="publicSiteForm" class="stack-form">
+          <label>公开名称<input id="publicSiteName" maxlength="80" required></label>
+          <label>一句话介绍<input id="publicSiteHeadline" maxlength="160"></label>
+          <label>公开简介<textarea id="publicSiteBio" rows="4" maxlength="600"></textarea></label>
+          <label>当前关注（逗号分隔）<input id="publicSiteFocus" placeholder="物理学习, 科学计算, 阅读记录"></label>
+          <label>GitHub 链接<input id="publicSiteGithub" type="url" placeholder="https://github.com/..."></label>
+          <label>其他公开链接（每行：名称 | 网址）<textarea id="publicSiteLinks" rows="2" placeholder="个人主页 | https://example.com"></textarea></label>
+          <label>公开头像路径或网址<input id="publicSiteAvatar" placeholder="assets/public-avatar.jpg"></label>
+          <div class="public-media-editor"><div id="publicSiteAvatarPreview" class="public-media-preview avatar"><span>未选择公开头像</span></div><div><strong>或选择本地头像</strong><p>仅在导出发布包时复制；不会自动上传。</p><input id="publicSiteAvatarFile" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp"><div class="inline-actions"><button id="uploadPublicSiteAvatar" class="secondary-action" type="button"><i data-lucide="image-up"></i>选择并保存</button><button id="removePublicSiteAvatar" class="icon-btn danger-icon hidden" type="button" title="移除公开头像" aria-label="移除公开头像"><i data-lucide="image-off"></i></button></div></div></div>
+          <button class="primary-action" type="submit"><i data-lucide="save"></i>保存公开档案</button>
+        </form>
+        <p class="micro-copy">这里的资料与成绩单姓名、院系和入学年级分开保存。头像和图片只有在导出内容包时才会进入公开目录。</p>
+      </section>
+
+      <section class="panel public-draft-list-panel">
+        <div class="panel-head"><div><span class="eyebrow">LOCAL DRAFTS</span><h2>内容条目</h2></div><button id="newPublicItem" class="icon-btn" type="button" title="新建内容" aria-label="新建内容"><i data-lucide="plus"></i></button></div>
+        <div class="public-studio-filter"><span id="publicDraftSummary">0 条本地条目</span><select id="publicDraftFilter" aria-label="筛选内容状态"><option value="">全部状态</option><option value="draft">草稿</option><option value="ready">待发布</option><option value="published">已发布</option></select></div>
+        <div id="publicDraftList" class="public-draft-list"></div>
+      </section>
+
+      <section class="panel public-item-editor-panel">
+        <div id="publicItemEmpty" class="empty-state"><i data-lucide="file-pen-line"></i><h2>选择或创建一个条目</h2><p>项目、书评、兴趣和公开笔记都可以在这里预览与整理。</p></div>
+        <form id="publicItemForm" class="hidden">
+          <div class="panel-head"><div><span class="eyebrow">ITEM EDITOR</span><h2 id="publicItemEditorTitle">编辑公开内容</h2></div><span id="publicItemStatus" class="content-status"></span></div>
+          <input id="publicItemId" type="hidden">
+          <div class="form-grid">
+            <label>内容类型<select id="publicItemType"><option value="project">项目</option><option value="review">书评</option><option value="interest">兴趣</option><option value="note">公开笔记</option></select></label>
+            <label>发布状态<select id="publicItemState"><option value="draft">草稿</option><option value="ready">待发布</option><option value="published">已发布</option></select></label>
+            <label class="span-2">标题<input id="publicItemTitle" maxlength="160" required></label>
+            <label>Slug<input id="publicItemSlug" maxlength="80" placeholder="留空则根据标题生成"></label>
+            <label>发布日期<input id="publicItemDate" type="date"></label>
+            <label class="span-2">摘要<textarea id="publicItemSummary" rows="2" maxlength="360"></textarea></label>
+            <label>标签（逗号分隔）<input id="publicItemTags" placeholder="物理, 阅读"></label>
+            <label>封面路径或网址<input id="publicItemCover" placeholder="assets/cover.jpg"></label>
+            <div class="public-media-editor span-2"><div id="publicItemCoverPreview" class="public-media-preview cover"><span>未选择封面</span></div><div><strong>或选择本地封面</strong><p>导出时作为公开附件写入内容包。</p><input id="publicItemCoverFile" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp"><div class="inline-actions"><button id="uploadPublicItemCover" class="secondary-action" type="button"><i data-lucide="image-up"></i>选择并保存</button><button id="removePublicItemCover" class="icon-btn danger-icon hidden" type="button" title="移除封面" aria-label="移除封面"><i data-lucide="image-off"></i></button></div></div></div>
+            <label>源代码链接<input id="publicItemSource" type="url" placeholder="https://github.com/..."></label>
+            <label>演示链接<input id="publicItemDemo" type="url" placeholder="https://..."></label>
+            <label class="span-2">其他链接（每行：名称 | 网址）<textarea id="publicItemLinks" rows="2" placeholder="项目说明 | https://example.com"></textarea></label>
+            <label>项目状态<input id="publicItemProjectStatus" placeholder="持续迭代"></label>
+            <label>技术栈（逗号分隔）<input id="publicItemStack" placeholder="Python, NumPy"></label>
+            <label class="span-2">亮点（每行一项）<textarea id="publicItemHighlights" rows="3"></textarea></label>
+            <label>作者（书评）<input id="publicItemAuthor"></label>
+            <label>阅读日期<input id="publicItemReadingDate" type="date"></label>
+            <label>评分（0-5）<input id="publicItemRating" type="number" min="0" max="5" step="0.5"></label>
+            <label class="check-label"><input id="publicItemSpoiler" type="checkbox">包含剧透提示</label>
+            <label class="span-2">Markdown 正文<textarea id="publicItemBody" class="public-item-body-input" spellcheck="false" placeholder="在这里写公开内容……"></textarea></label>
+          </div>
+          <div class="public-item-editor-actions"><button id="previewPublicItem" class="secondary-action" type="button"><i data-lucide="eye"></i>预览</button><button id="deletePublicItem" class="danger-button" type="button"><i data-lucide="trash-2"></i>删除</button><span class="action-spacer"></span><button class="primary-action" type="submit"><i data-lucide="save"></i>保存条目</button></div>
+          <p class="micro-copy">只有“已发布”条目会进入导出包。导出不会自动修改 GitHub 仓库。</p>
+        </form>
+      </section>
+    </div>
+  </main>
+  <dialog id="publicPreviewDialog" class="app-dialog public-preview-dialog"><div class="dialog-head"><div><span class="eyebrow">PREVIEW</span><h2 id="publicPreviewTitle">公开预览</h2></div><button class="icon-btn" type="button" data-close-dialog aria-label="关闭"><i data-lucide="x"></i></button></div><article id="publicPreviewBody" class="markdown-body"></article></dialog>
+</body>
+</html>

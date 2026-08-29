@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#8f2f3a">
   <title>笔记 · mako's learning</title>
-  <link rel="stylesheet" href="vendor/katex.min.css"><link rel="stylesheet" href="styles.css?v=20260730">
-  <script defer src="vendor/lucide.min.js"></script><script defer src="vendor/marked.min.js"></script><script defer src="vendor/purify.min.js"></script><script defer src="vendor/katex.min.js"></script><script defer src="vendor/auto-render.min.js"></script><script type="module" src="js/notes-page.js"></script>
+  <link rel="stylesheet" href="vendor/katex.min.css"><link rel="stylesheet" href="styles.css?v=20260829">
+  <script defer src="vendor/lucide.min.js"></script><script defer src="vendor/marked.min.js"></script><script defer src="vendor/purify.min.js"></script><script defer src="vendor/katex.min.js"></script><script defer src="vendor/auto-render.min.js"></script><script type="module" src="js/notes-page.js?v=20260829"></script>
 </head>
 <body data-page="notes">
   <main class="workspace notes-workspace">
@@ -14,11 +14,11 @@
       <section class="note-editor panel">
         <div id="emptyNote" class="empty-state"><i data-lucide="notebook-pen"></i><h2>选择或创建一篇笔记</h2><p>建议按“章节 / 主题 / 推导目标”组织笔记。</p></div>
         <div id="noteDocument" class="hidden">
-          <div class="editor-meta"><input id="noteTitle" class="title-input" placeholder="笔记标题"><input id="noteChapter" placeholder="章节，例如：第二章 拉格朗日力学"><input id="noteTags" placeholder="标签，逗号分隔"><div class="editor-actions"><button id="insertTemplateButton" class="secondary-action" type="button"><i data-lucide="blocks"></i>推导模板</button><button id="saveNoteButton" class="primary-action" type="button"><i data-lucide="save"></i>保存</button><button id="deleteNoteButton" class="icon-btn danger-icon" type="button" title="删除笔记" aria-label="删除笔记"><i data-lucide="trash-2"></i></button></div></div>
+          <div class="editor-meta"><input id="noteTitle" class="title-input" placeholder="笔记标题"><input id="noteChapter" placeholder="章节，例如：第二章 拉格朗日力学"><input id="noteTags" placeholder="标签，逗号分隔"><div class="editor-actions"><button id="insertTemplateButton" class="secondary-action" type="button"><i data-lucide="blocks"></i>推导模板</button><button id="publishNoteButton" class="secondary-action" type="button" disabled><i data-lucide="send"></i><span>发布为公开笔记</span></button><button id="unpublishNoteButton" class="icon-btn hidden" type="button" title="撤回公开笔记" aria-label="撤回公开笔记"><i data-lucide="eye-off"></i></button><button id="saveNoteButton" class="primary-action" type="button"><i data-lucide="save"></i>保存</button><button id="deleteNoteButton" class="icon-btn danger-icon" type="button" title="删除笔记" aria-label="删除笔记"><i data-lucide="trash-2"></i></button></div></div>
           <div class="mobile-editor-tabs segmented"><button class="active" data-pane="edit">编辑</button><button data-pane="preview">预览</button></div>
           <div class="split-editor"><textarea id="noteContent" spellcheck="false" placeholder="使用 Markdown 与 LaTeX 记录推导……"></textarea><article id="notePreview" class="markdown-body"></article></div>
           <section class="note-attachments"><div><strong>附件</strong><span>本地保存，并随 ZIP 备份导出</span></div><button id="addAttachmentButton" class="icon-btn" type="button" title="添加附件" aria-label="添加附件"><i data-lucide="paperclip"></i></button><input id="attachmentInput" class="hidden" type="file" multiple><div id="attachmentList" class="attachment-list"></div></section>
-          <div class="editor-status"><span id="noteStatus">未保存</span><span id="noteWordCount">0 字</span></div>
+          <div class="editor-status"><span id="noteStatus">未保存</span><span id="notePublicStatus"></span><span id="noteWordCount">0 字</span></div>
         </div>
       </section>
     </section>

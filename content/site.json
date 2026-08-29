@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "name": "mako",
+  "headline": "在物理、代码与阅读之间做长期记录",
+  "bio": "记录正在学习、正在制作和正在阅读的事物。这里是个人档案，也是一些尚未完成的思考的存放处。",
+  "avatar": "",
+  "focus": ["物理学习", "科学计算", "阅读记录"],
+  "links": [
+    { "label": "GitHub", "url": "https://github.com/mako-kawai" }
+  ],
+  "featuredProjectIds": [
+    "project-earth-axis",
+    "project-learning-cockpit",
+    "project-python"
+  ]
+}

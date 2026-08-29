@@ -1,14 +1,17 @@
 const CACHE_PREFIX = 'mako-learning-static-';
-const CACHE_NAME = `${CACHE_PREFIX}v2-20260822-r4`;
+const CACHE_NAME = `${CACHE_PREFIX}v3-20260829-r3`;
 
 const CORE_FILES = [
-  './', './index.html', './tasks.html', './courses.html', './notes.html',
+  './', './index.html', './dashboard.html', './projects.html', './reviews.html', './interests.html', './notes-public.html', './about.html', './content-studio.html', './tasks.html', './courses.html', './notes.html',
   './schedule.html', './grades.html', './transcript.html', './settings.html', './homework.html', './help.html',
-  './styles.css', './manifest.webmanifest', './assets/app-icon.svg',
+  './styles.css', './styles.css?v=20260829', './styles.css?v=20260829-r3', './public.css', './public.css?v=20260829', './manifest.webmanifest', './assets/app-icon.svg',
+  './content/site.json', './content/manifest.json', './content/README.md',
+  './content/projects/earth-axis-dynamics.md', './content/projects/learning-cockpit.md', './content/projects/python-learning-notes.md', './content/projects/java-learning.md', './content/reviews/README.md', './content/interests/README.md', './content/notes/README.md',
   './assets/theme-public.png', './assets/theme-makura.png', './assets/theme-yuzusoft.png',
-  './js/logic.js', './js/logic.js?v=20260822', './js/store.js', './js/store.js?v=20260822', './js/ui.js', './js/dashboard.js', './js/tasks.js',
-  './js/courses-page.js', './js/courses-page.js?v=20260822', './js/notes-page.js', './js/schedule-page.js', './js/transcript-page.js', './js/transcript-page.js?v=20260822', './js/transcript-page.js?v=20260822-r4',
-  './js/grades-page.js', './js/grades-page.js?v=20260822', './js/settings-page.js', './js/image-cropper.js',
+  './js/logic.js', './js/logic.js?v=20260829', './js/store.js', './js/store.js?v=20260829', './js/ui.js', './js/dashboard.js', './js/dashboard.js?v=20260829', './js/tasks.js', './js/tasks.js?v=20260829',
+  './js/courses-page.js', './js/courses-page.js?v=20260829', './js/notes-page.js', './js/notes-page.js?v=20260829', './js/schedule-page.js', './js/schedule-page.js?v=20260829', './js/transcript-page.js', './js/transcript-page.js?v=20260829', './js/public-shell.js', './js/public-content.js', './js/public-page.js', './js/public-page.js?v=20260829', './js/content-studio.js', './js/content-studio.js?v=20260829',
+  './js/grades-page.js', './js/grades-page.js?v=20260829', './js/settings-page.js', './js/settings-page.js?v=20260829', './js/image-cropper.js',
+  './script.js', './courses.js', './utils.js',
   './vendor/lucide.min.js', './vendor/marked.min.js', './vendor/purify.min.js',
   './vendor/katex.min.css', './vendor/katex.min.js', './vendor/auto-render.min.js',
   './vendor/ical.min.js', './vendor/jszip.min.js',

@@ -1,0 +1,451 @@
+body[data-public-page] {
+  background: transparent;
+}
+
+body[data-public-page]::after {
+  background: rgb(237 240 242 / var(--theme-overlay-opacity, .74));
+}
+
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  padding: 13px max(24px, calc((100% - 1180px) / 2));
+  background: rgba(250, 249, 247, .28);
+  border-bottom: 1px solid rgba(32, 36, 45, .12);
+  backdrop-filter: blur(12px) saturate(115%);
+}
+
+.public-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.public-brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  flex: 0 0 34px;
+  place-items: center;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font: 700 17px Georgia, serif;
+}
+
+.public-brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-brand-copy strong {
+  font: 600 15px Georgia, serif;
+}
+
+.public-brand-copy small {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 8px;
+  letter-spacing: .06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-nav {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.public-nav-item {
+  position: relative;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.public-nav-item:hover,
+.public-nav-item.active {
+  color: var(--accent);
+}
+
+.public-nav-item.active::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  bottom: 1px;
+  left: 10px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.public-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.public-network {
+  color: var(--secondary);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.public-theme-switch {
+  display: flex;
+  gap: 5px;
+}
+
+.public-theme-dot {
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: 1px solid rgba(32, 36, 45, .24);
+  border-radius: 50%;
+  cursor: pointer;
+  background: #9aa5b2;
+}
+
+.public-theme-dot[data-public-theme="makura"] { background: #7e9c91; }
+.public-theme-dot[data-public-theme="yuzusoft"] { background: #d9894c; }
+.public-theme-dot.selected { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.public-main {
+  width: min(1180px, calc(100% - 40px));
+  min-height: calc(100vh - 130px);
+  margin: 0 auto;
+  padding: 46px 0 74px;
+}
+
+.public-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.25fr) minmax(240px, .75fr);
+  align-items: center;
+  gap: 30px;
+  min-height: 330px;
+  padding: 32px 0 42px;
+  border-bottom: 1px solid var(--line);
+}
+
+.public-identity-mark {
+  width: 116px;
+  height: 116px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.85);
+  background: var(--accent-soft);
+  box-shadow: 0 12px 32px rgba(22, 26, 34, .12);
+}
+
+.public-avatar-initial {
+  color: var(--accent);
+  font: 600 50px Georgia, serif;
+}
+
+.public-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.public-kicker {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.public-intro h1,
+.public-page-title h1 {
+  margin: 8px 0 10px;
+  font-size: 48px;
+  line-height: 1.04;
+}
+
+.public-headline {
+  max-width: 620px;
+  margin: 0;
+  color: var(--ink);
+  font: 600 21px/1.45 Georgia, "Noto Serif SC", serif;
+}
+
+.public-bio {
+  max-width: 600px;
+  margin: 13px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.public-intro-actions,
+.public-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.public-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.public-button.primary { background: var(--accent); color: #fff; }
+.public-button.secondary { background: rgba(250,249,247,.7); color: var(--accent); }
+.public-button:hover { background: var(--accent-strong); color: #fff; }
+
+.public-focus-panel,
+.public-quiet-panel {
+  align-self: stretch;
+  padding: 22px;
+  background: rgba(250, 249, 247, .68);
+  border-left: 3px solid var(--secondary);
+}
+
+.public-focus-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.public-focus-list span,
+.public-tags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  padding: 0 8px;
+  background: rgba(222,234,232,.9);
+  color: var(--secondary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.public-focus-panel p,
+.public-quiet-panel p {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.public-section {
+  margin-top: 54px;
+}
+
+.public-section-heading,
+.public-list-tools,
+.public-page-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.public-section-heading h2 {
+  margin: 5px 0 0;
+  font-size: 23px;
+}
+
+.public-section-heading p,
+.public-page-title > p {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.public-text-link,
+.public-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.public-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.public-item-card {
+  min-width: 0;
+  overflow: hidden;
+  background: rgba(250, 249, 247, .86);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 30px rgba(22, 26, 34, .08);
+}
+
+.public-item-card:hover { border-color: var(--accent); }
+
+.public-cover {
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.public-cover img { width: 100%; height: 100%; object-fit: cover; }
+.public-cover.detail { aspect-ratio: 4 / 5; }
+.public-cover-placeholder { background: linear-gradient(135deg, var(--accent-soft), rgba(222,234,232,.9)); }
+
+.public-item-card-body { padding: 16px; }
+
+.public-item-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: .06em;
+}
+
+.public-item-card h3 { margin: 10px 0 0; font-size: 17px; line-height: 1.35; }
+.public-item-card h3 a { color: var(--ink); text-decoration: none; }
+.public-item-card h3 a:hover { color: var(--accent); }
+.public-item-card p { margin: 9px 0 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+.public-item-facts { display: block; margin-top: 10px; color: var(--secondary); font-size: 10px; line-height: 1.5; }
+.public-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 13px; }
+.public-item-card .public-text-link { margin-top: 15px; }
+
+.public-split-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(240px, .7fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.public-card-stack { display: grid; gap: 9px; margin-top: 18px; }
+.public-item-card.compact { display: grid; grid-template-columns: 135px minmax(0, 1fr); }
+.public-item-card.compact .public-cover { height: 100%; min-height: 135px; aspect-ratio: auto; }
+.public-item-card.compact .public-item-card-body { padding: 14px 16px; }
+.public-item-card.compact h3 { margin-top: 7px; font-size: 15px; }
+.public-item-card.compact .public-tags { margin-top: 9px; }
+
+.public-quiet-panel h2 { margin: 8px 0 0; font: 600 22px/1.35 Georgia, "Noto Serif SC", serif; }
+.public-quiet-links { display: grid; gap: 10px; margin-top: 22px; }
+.public-quiet-links a { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 11px; text-decoration: none; }
+.public-quiet-links a:hover { color: var(--accent); }
+
+.public-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-height: 150px;
+  padding: 24px;
+  background: rgba(250,249,247,.58);
+  border: 1px dashed var(--line);
+  color: var(--muted);
+}
+
+.public-empty svg { color: var(--accent); }
+.public-empty h2 { margin: 4px 0 0; color: var(--ink); font-size: 16px; }
+.public-empty p { margin: 0; font-size: 11px; line-height: 1.6; }
+
+.public-list-page { margin-top: 12px; }
+.public-list-tools { align-items: center; margin-top: 32px; padding-bottom: 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.public-search { width: min(300px, 100%); min-height: 36px; padding: 0 11px; border: 1px solid var(--line); background: rgba(250,249,247,.76); color: var(--ink); }
+.public-search:focus { border-color: var(--accent); outline: 2px solid var(--accent-soft); outline-offset: 1px; }
+
+.public-detail { margin-top: 10px; }
+.public-detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 42px; margin-top: 28px; }
+.public-detail-summary { max-width: 700px; margin: 0; color: var(--muted); font: 18px/1.65 Georgia, "Noto Serif SC", serif; }
+.public-detail-meta { margin: 15px 0 0; color: var(--muted); font-size: 11px; }
+.public-detail-main > .public-tags { margin-top: 16px; }
+.public-article-body { max-width: 760px; margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--line); }
+.public-detail-aside { min-width: 0; }
+.public-fact-block { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); }
+.public-fact-block p { margin: 7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.public-fact-block ul { margin: 8px 0 0; padding-left: 17px; color: var(--muted); font-size: 11px; line-height: 1.75; }
+.public-fact-block.spoiler-note { border-top-color: #d6a35c; }
+.public-fact-block.spoiler-note p { color: #8f5b19; }
+.public-detail-aside .public-detail-links { flex-direction: column; align-items: stretch; margin-top: 20px; }
+.public-detail-aside .public-button { width: 100%; }
+
+.public-about-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .7fr); gap: 42px; margin-top: 30px; }
+.public-essay { max-width: 720px; padding-top: 2px; font: 18px/1.9 Georgia, "Noto Serif SC", serif; }
+.public-essay p { margin: 0 0 18px; }
+.public-privacy-note { margin-top: 24px !important; color: var(--muted); font: 11px/1.65 var(--font, "Segoe UI", sans-serif); }
+
+.public-footer { border-top: 1px solid var(--line); background: rgba(250,249,247,.42); }
+.public-footer-inner { width: min(1180px, calc(100% - 40px)); display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 58px; margin: 0 auto; color: var(--muted); font-size: 10px; }
+.public-footer-inner a { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); font-weight: 700; text-decoration: none; }
+
+@media (max-width: 920px) {
+  .public-intro h1, .public-page-title h1 { font-size: 42px; }
+  .public-header { grid-template-columns: auto 1fr; gap: 15px; }
+  .public-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; overflow-x: auto; }
+  .public-header-actions { justify-content: flex-end; }
+  .public-intro { grid-template-columns: auto minmax(0, 1fr); }
+  .public-focus-panel { grid-column: 1 / -1; min-height: 0; }
+  .public-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px) {
+  .public-header { display: block; padding: 10px 14px; }
+  .public-header-actions { position: absolute; top: 15px; right: 14px; }
+  .public-network { display: none; }
+  .public-nav { margin-top: 11px; padding-bottom: 2px; }
+  .public-nav-item { flex: 0 0 auto; padding: 7px 8px; font-size: 11px; }
+  .public-main { width: calc(100% - 28px); padding: 28px 0 52px; }
+  .public-intro { display: block; min-height: 0; padding: 20px 0 30px; }
+  .public-identity-mark { width: 82px; height: 82px; margin-bottom: 20px; }
+  .public-avatar-initial { font-size: 36px; }
+  .public-intro h1, .public-page-title h1 { font-size: 35px; }
+  .public-headline { font-size: 18px; }
+  .public-focus-panel { margin-top: 26px; padding: 17px; }
+  .public-section { margin-top: 38px; }
+  .public-section-heading, .public-list-tools { display: block; }
+  .public-section-heading .public-text-link { margin-top: 12px; }
+  .public-card-grid { grid-template-columns: 1fr; }
+  .public-split-section, .public-detail-layout, .public-about-grid { grid-template-columns: 1fr; gap: 28px; }
+  .public-item-card.compact { grid-template-columns: 108px minmax(0, 1fr); }
+  .public-item-card.compact .public-cover { min-height: 120px; }
+  .public-list-tools .public-search { width: 100%; margin-top: 12px; }
+  .public-detail-aside { order: -1; max-width: 210px; }
+  .public-footer-inner { width: calc(100% - 28px); align-items: flex-start; flex-direction: column; justify-content: center; padding: 12px 0; }
+}
+
+@media print {
+  .public-header, .public-footer, .public-theme-switch, .public-network { display: none !important; }
+  body[data-public-page]::before, body[data-public-page]::after { display: none; }
+  .public-main { width: 100%; padding: 0; }
+  .public-item-card { box-shadow: none; }
+}

@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-29T00:00:00+08:00",
+  "items": [
+    {
+      "id": "project-earth-axis",
+      "type": "project",
+      "slug": "earth-axis-dynamics",
+      "title": "地球自转轴进动与章动模型",
+      "summary": "以层级轨道、日月力矩和数值诊断为核心的物理建模项目。",
+      "tags": ["物理建模", "Python", "数值模拟"],
+      "status": "published",
+      "publishedAt": "2026-08-29",
+      "bodyPath": "projects/earth-axis-dynamics.md",
+      "projectStatus": "阶段一完成",
+      "stack": ["Python", "数值积分", "LaTeX"],
+      "highlights": ["层级相对运动", "太阳差分引力", "日月力矩与轴向诊断"],
+      "sourceUrl": "https://github.com/mako-kawai/earth-axis-dynamics"
+    },
+    {
+      "id": "project-learning-cockpit",
+      "type": "project",
+      "slug": "learning-cockpit",
+      "title": "北大物理学习驾驶舱",
+      "summary": "一个本地优先的学习工作区，把任务、课程、笔记、日程和正式成绩放进同一条学习脉络。",
+      "tags": ["原生 Web", "PWA", "本地优先"],
+      "status": "published",
+      "publishedAt": "2026-08-29",
+      "bodyPath": "projects/learning-cockpit.md",
+      "projectStatus": "持续迭代",
+      "stack": ["HTML", "CSS", "ES Modules", "IndexedDB"],
+      "highlights": ["离线可用", "Markdown 与 KaTeX 笔记", "成绩单与 GPA 估算"],
+      "sourceUrl": "https://github.com/mako-kawai/vibe-coding",
+      "demoUrl": "https://mako-kawai.github.io/vibe-coding/"
+    },
+    {
+      "id": "project-python",
+      "type": "project",
+      "slug": "python-learning-notes",
+      "title": "Python 学习与小型数值实验",
+      "summary": "从基础练习、数据处理到概率分布实验的个人代码记录。",
+      "tags": ["Python", "学习记录", "数据处理"],
+      "status": "published",
+      "publishedAt": "2026-08-29",
+      "bodyPath": "projects/python-learning-notes.md",
+      "projectStatus": "持续积累",
+      "stack": ["Python", "NumPy", "Jupyter"],
+      "highlights": ["概率分布计算", "课程练习归档", "按主题整理代码"],
+      "sourceUrl": "https://github.com/mako-kawai/my_python_codes"
+    },
+    {
+      "id": "project-java",
+      "type": "project",
+      "slug": "java-learning",
+      "title": "Java 入门练习",
+      "summary": "以小程序和面向对象基础为主的 Java 学习记录。",
+      "tags": ["Java", "编程基础"],
+      "status": "published",
+      "publishedAt": "2026-08-29",
+      "bodyPath": "projects/java-learning.md",
+      "projectStatus": "学习中",
+      "stack": ["Java"],
+      "highlights": ["语法基础", "类与方法", "小型练习" ]
+    }
+  ]
+}

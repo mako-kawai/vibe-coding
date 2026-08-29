@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8f2f3a">
+  <title>学习驾驶舱 · mako's learning</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css?v=20260829">
+  <script defer src="vendor/lucide.min.js"></script>
+  <script type="module" src="js/dashboard.js?v=20260829"></script>
+</head>
+<body data-page="dashboard">
+  <main class="workspace dashboard-page">
+    <section class="page-heading">
+      <div><span class="eyebrow">LEARNING COCKPIT / 总览</span><h1 id="greeting">今天，从最重要的事开始。</h1><p id="todayLabel" class="page-lead"></p></div>
+      <div class="semester-chip"><span id="semesterWeek">学期未设置</span><strong id="semesterProgress">0%</strong></div>
+    </section>
+
+    <section class="story-strip" aria-label="今日提示">
+      <div class="portrait-token" aria-hidden="true">M</div>
+      <div><span class="speaker">SYSTEM / 学习导航</span><p id="dailyBrief">正在整理今天的课程与截止任务……</p></div>
+    </section>
+
+    <nav class="dashboard-jumpbar" aria-label="工作区总入口">
+      <a href="tasks.html"><i data-lucide="list-checks"></i><span>任务</span></a>
+      <a href="courses.html"><i data-lucide="library-big"></i><span>课程</span></a>
+      <a href="notes.html"><i data-lucide="notebook-pen"></i><span>笔记</span></a>
+      <a href="schedule.html"><i data-lucide="calendar-days"></i><span>日程</span></a>
+      <a href="grades.html"><i data-lucide="chart-no-axes-column"></i><span>成绩</span></a>
+      <a href="settings.html"><i data-lucide="settings-2"></i><span>设置</span></a>
+    </nav>
+
+    <div class="dashboard-grid">
+      <section class="panel urgent-panel">
+        <div class="panel-head"><div><span class="eyebrow">DEADLINE QUEUE</span><h2>优先处理</h2></div><a class="text-link" href="tasks.html">查看全部 <i data-lucide="arrow-right"></i></a></div>
+        <div id="urgentTasks" class="task-stack"></div>
+      </section>
+
+      <section class="panel agenda-panel">
+        <div class="panel-head"><div><span class="eyebrow">TODAY</span><h2>今日课程</h2></div><a class="icon-btn" href="schedule.html" title="打开日程" aria-label="打开日程"><i data-lucide="calendar-days"></i></a></div>
+        <div id="todayAgenda" class="agenda-list"></div>
+      </section>
+
+      <section class="panel exams-panel">
+        <div class="panel-head"><div><span class="eyebrow">COUNTDOWN</span><h2>考试倒计时</h2></div></div>
+        <div id="examCountdowns" class="countdown-list"></div>
+      </section>
+
+      <section class="panel overview-panel">
+        <div class="panel-head"><div><span class="eyebrow">SEMESTER STATUS</span><h2>学期状态</h2></div></div>
+        <div class="metric-grid">
+          <div class="metric"><span>进行中任务</span><strong id="activeTaskCount">0</strong></div>
+          <div class="metric danger"><span>已逾期</span><strong id="overdueCount">0</strong></div>
+          <div class="metric"><span>本学期学分</span><strong id="courseCredits">0</strong></div>
+          <div class="metric"><span>GPA 估算</span><strong id="gpaEstimate">--</strong></div>
+        </div>
+        <div class="progress-line"><span id="progressLineFill"></span></div>
+        <p id="backupReminder" class="micro-copy"></p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

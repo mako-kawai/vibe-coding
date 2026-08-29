@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {
   dedupeScheduleEvents, filterGradesByTerm, formatGpa, getDueState, gpaForScore, gradeSummary, gradeSummaryForCategory, groupGradesByTerm, legacyPkuGpa,
   mergeState, migrateLegacyTasks, parseGradeCsv, parseNoteMarkdown,
-  normalizeCourseCategory, parsePkuGradeText, serializeGradeTranscriptCsv, serializeNoteMarkdown, splitGradesByCategory
+  isGpaEligibleRecord, normalizeCourseCategory, normalizePublicContentItem, normalizePublicSite, parsePkuGradeText, publicItemToManifest, publicSiteToManifest,
+  safePublicAssetUrl, safePublicPath, safePublicUrl, serializeGradeTranscriptCsv, serializeNoteMarkdown, slugifyPublic, splitGradesByCategory
 } from '../js/logic.js';
 import { backgroundImageQuality, cropPlacement } from '../js/image-cropper.js';
 
@@ -50,6 +51,38 @@ test('course categories normalize legacy labels and keep the six official catego
   assert.equal(normalizeCourseCategory('专业必修'), '专业必修');
 });
 
+test('public content normalization keeps a stable safe schema', () => {
+  assert.equal(slugifyPublic('  地球自转轴 / 模型  '), '地球自转轴-模型');
+  assert.equal(slugifyPublic('', 'project'), 'project');
+  assert.equal(safePublicUrl('javascript:alert(1)'), '');
+  assert.equal(safePublicUrl('data:text/html,unsafe'), '');
+  assert.equal(safePublicUrl('/outside/site.jpg'), '');
+  assert.equal(safePublicPath('../outside.md'), '');
+  assert.equal(safePublicPath('projects/%2e%2e/private.md'), '');
+  assert.equal(safePublicPath('projects/%5C..%5Cprivate.md'), '');
+  assert.equal(safePublicPath('projects/demo.md'), 'projects/demo.md');
+  assert.equal(safePublicAssetUrl('https://example.com/avatar.jpg'), 'https://example.com/avatar.jpg');
+  const item = normalizePublicContentItem({ id: 'p1', type: 'unknown', status: 'visible', title: '测试', tags: '物理,代码', bodyPath: '../private.md', cover: 'javascript:x', spoiler: 'false' });
+  assert.equal(item.type, 'project');
+  assert.equal(item.status, 'draft');
+  assert.deepEqual(item.tags, ['物理', '代码']);
+  assert.equal(item.bodyPath, '');
+  assert.equal(item.cover, '');
+  assert.equal(item.spoiler, false);
+});
+
+test('public manifests strip private local asset references', () => {
+  const item = publicItemToManifest({ id: 'n1', type: 'note', title: '公开笔记', bodyAssetId: 'private-body', coverAssetId: 'private-cover', sourceNoteId: 'private-note' });
+  assert.equal(item.bodyPath, 'notes/公开笔记.md');
+  assert.equal('bodyAssetId' in item, false);
+  assert.equal('coverAssetId' in item, false);
+  assert.equal('sourceNoteId' in item, false);
+  const site = publicSiteToManifest({ name: 'mako', avatar: 'media/avatar.png', avatarAssetId: 'local-only' });
+  assert.equal(site.avatar, 'media/avatar.png');
+  assert.equal('avatarAssetId' in site, false);
+  assert.equal(normalizePublicSite({}).name, 'mako');
+});
+
 test('grade summary estimates only eligible percentage records', () => {
   const records = [
     { id: 'p', gradingMode: 'percentage', value: 80, credits: 4 },
@@ -79,6 +112,20 @@ test('professional requirement GPA only includes percentage grades from that cou
   assert.equal(summary.gpaCredits, 4);
   assert.equal(summary.estimatedGpa, 3.8125);
   assert.equal(summary.exclusions.length, 1);
+});
+
+test('failed percentage grades are visible in averages but excluded from GPA credits', () => {
+  const records = [
+    { id: 'fail', gradingMode: 'percentage', value: 59, credits: 3 },
+    { id: 'pass', gradingMode: 'percentage', value: 60, credits: 2 }
+  ];
+  const summary = gradeSummary(records, [], true, 'pku2019');
+  assert.equal(summary.weightedAverage, 59.4);
+  assert.equal(summary.gpaCredits, 2);
+  assert.equal(summary.estimatedGpa, 1);
+  assert.ok(summary.exclusions.some(item => item.id === 'fail' && item.reason.includes('不及格')));
+  assert.equal(isGpaEligibleRecord(records[0]), false);
+  assert.equal(isGpaEligibleRecord(records[1]), true);
 });
 
 test('transcript puts professional requirements first and separates remaining terms', () => {
@@ -125,6 +172,13 @@ test('transcript filtering and CSV serialization preserve grade modes and quotin
   assert.match(csv, /"PHY,101","理论物理,基础",未分类/);
   assert.match(csv, /88,.*\d\.\d{3}/);
   assert.match(csv, /P,不纳入/);
+});
+
+test('transcript CSV quotes commas, quotes and line breaks', () => {
+  const courses = [{ id: 'quoted', name: '课程 "A"\n第二行', category: '通选课' }];
+  const records = [{ courseId: 'quoted', term: '2025-2026 学年度第1学期', credits: 2, gradingMode: 'percentage', value: 90 }];
+  const csv = serializeGradeTranscriptCsv(records, courses);
+  assert.match(csv, /"课程 ""A""\n第二行",通选课/);
 });
 
 test('PKU portal text parser recognizes terms, numeric grades and pass records', () => {
@@ -231,4 +285,22 @@ test('state merge updates matching IDs without duplicating schedule UIDs', () =>
   assert.equal(merged.courses.length, 1);
   assert.equal(merged.courses[0].name, '新名');
   assert.equal(merged.schedule.length, 1);
+});
+
+test('state merge carries public site and content without exposing private note fields', () => {
+  const base = { version: 2, profile: {}, settings: {}, semester: {}, courses: [], tasks: [], schedule: [], grades: [], notes: [], tags: [], publicSite: { name: '旧名' }, publicContent: [{ id: 'p1', type: 'project', title: '旧条目' }] };
+  const incoming = { version: 2, publicSite: { headline: '新介绍' }, publicContent: [{ id: 'p2', type: 'review', title: '新条目', bodyAssetId: 'local' }] };
+  const merged = mergeState(base, incoming);
+  assert.equal(merged.publicSite.name, '旧名');
+  assert.equal(merged.publicSite.headline, '新介绍');
+  assert.deepEqual(merged.publicContent.map(item => item.id), ['p1', 'p2']);
+  assert.equal(merged.publicContent[1].bodyAssetId, 'local');
+});
+
+test('state merge preserves local theme mappings from both backups', () => {
+  const merged = mergeState(
+    { version: 2, settings: { localThemeAssets: { public: 'asset-a' } }, courses: [], tasks: [], schedule: [], grades: [], notes: [], tags: [], publicContent: [] },
+    { version: 2, settings: { localThemeAssets: { makura: 'asset-b' } }, courses: [], tasks: [], schedule: [], grades: [], notes: [], tags: [], publicContent: [] }
+  );
+  assert.deepEqual(merged.settings.localThemeAssets, { public: 'asset-a', makura: 'asset-b' });
 });
